@@ -466,7 +466,7 @@ begin
     end;
   end else
   begin
-    Result := System.TypInfo.GetEnumValue(TypeInfo, ReadString(Index));
+    Result := System.StrUtils.IndexText(ReadString(Index), EnumStrings);
   end;
 
   TypeData := System.TypInfo.GetTypeData(TypeInfo);
@@ -535,7 +535,7 @@ begin
   FillChar(Result, SizeOf(T), #0);
   for I := 0 to A.InnerObject.Count - 1 do
   begin
-    Include(TGenericSet(Pointer(@Result)^), A.Reader.ReadEnum(TypeInfo, I));
+    Include(TGenericSet(Pointer(@Result)^), A.Reader.ReadEnum(TypeInfo, I, EnumStrings));
   end;
 end;
 
@@ -664,7 +664,7 @@ begin
     end;
   end else
   begin
-    Result := System.TypInfo.GetEnumValue(TypeInfo, ReadString(Name));
+    Result := System.StrUtils.IndexText(ReadString(Name), EnumStrings);
   end;
 
   TypeData := System.TypInfo.GetTypeData(TypeInfo);
@@ -746,7 +746,7 @@ begin
   FillChar(Result, SizeOf(T), #0);
   for I := 0 to A.InnerObject.Count - 1 do
   begin
-    Include(TGenericSet(Pointer(@Result)^), A.Reader.ReadEnum(TypeInfo, I));
+    Include(TGenericSet(Pointer(@Result)^), A.Reader.ReadEnum(TypeInfo, I, EnumStrings));
   end;
 end;
 

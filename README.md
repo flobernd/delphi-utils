@@ -101,7 +101,8 @@ begin
     W.Writer.WriteSet<TAnchors>('set', [akTop, akBottom], ['left', 'top', 'right', 'bottom']);
 
     // Writes a new array or "null", if the array does not contain elements
-    W.WriteArrayOrNull('conditional', function(W: TJSONArrayWriter): Boolean
+    W.WriteArrayOrNull('conditional', 
+      function(W: TJSONArrayWriter): Boolean
       begin
         // Add elements to the new array
         // ...
@@ -111,6 +112,7 @@ begin
   finally
     J.Free;
   end;
+end;
 ```
 
 ## License ##
