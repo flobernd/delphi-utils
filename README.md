@@ -13,20 +13,20 @@ Various helper classes- and functions for the JSON Objects Framework (System.JSO
 
 ### IJSONArrayReader and IJSONObjectReader
 Encapsulates ```System.JSON.TJSONArray``` respectively ```System.JSON.TJSONObject``` and provides methods for strong-typed reading.
- - Automatically keeps track of the current path and raises a meaningfull exception, if the accessed element's type did not match
- - Reads trivial JSON types (```Integer```, ```Int64```, ```Double```, ```String```, ```Boolean```)
- - Reads complex JSON types (```Array```, ```Object```)
+- Automatically keeps track of the current path and raises a meaningfull exception, if the accessed element's type did not match
+- Reads trivial JSON types (```Integer```, ```Int64```, ```Double```, ```String```, ```Boolean```)
+- Reads complex JSON types (```Array```, ```Object```)
   - Returns a new ```IJSONArrayReader``` or ```IJSONObjectReader``` for chained reading
- - Reads generic types (```Enum<T>```, ```Set<T>```)
- - Supports default values (returns default-value if the accessed element does not exists, instead of raising an exception)
+- Reads generic types (```Enum<T>```, ```Set<T>```)
+- Supports default values (returns default-value if the accessed element does not exists, instead of raising an exception)
  
 ### IJSONArrayWriter and IJSONObjectWriter
 Encapsulates ```System.JSON.TJSONArray``` respectively ```System.JSON.TJSONObject``` and provides methods for strong-typed writing.
- - Writes trivial JSON types (```Integer```, ```Int64```, ```Double```, ```String```, ```Boolean```, ```Null```)
- - Writes complex JSON types (```Array```, ```Object```)
+- Writes trivial JSON types (```Integer```, ```Int64```, ```Double```, ```String```, ```Boolean```, ```Null```)
+- Writes complex JSON types (```Array```, ```Object```)
   - Returns a new ```IJSONArrayWriter``` or ```IJSONObjectWriter``` for chained writing
- - Writes generic types (```Enum<T>```, ```Set<T>```)
- - Supports conditional writes using anonymous functions
+- Writes generic types (```Enum<T>```, ```Set<T>```)
+- Supports conditional writes using anonymous functions
   - Conditional ```AddArray```, ```WriteArray```, ```AddObject```, ```WriteObject```
   - Conditional ```AddArrayOrNull```, ```WriteArrayOrNull```, ```AddObjectOrNull```, ```WriteObjectOrNull```
  
