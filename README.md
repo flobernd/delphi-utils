@@ -5,13 +5,15 @@ A collection of useful Delphi functions- and classes
 
 ## Table of contents
 ### [Comparator](https://github.com/flobernd/delphi-utils/wiki/Comparator)
-Helper classes for custom object-comparison implementations.
+Helper classes for custom object-comparison implementations
 
 ### [Container](https://github.com/flobernd/delphi-utils/wiki/Container)
-Helper classes for the generic container classes `TArray` and `TList`.
+Helper classes for the generic container classes `TArray` and `TList`
 
 ### [JSON](https://github.com/flobernd/delphi-utils/wiki/JSON)
-Various helper classes- and functions for the JSON Objects Framework (`System.JSON`).
+Helper classes- and functions for the JSON Objects Framework (`System.JSON`)
+- Type-safe reading & writing with support for default values and chaining
+- Formatting
 
 ## License ##
 
