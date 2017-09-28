@@ -1,6 +1,6 @@
 {***************************************************************************************************
 
-  JSON Utils
+  Delphi Utils
 
   Original Author : Florian Bernd
 
@@ -338,7 +338,8 @@ type
     procedure WriteArray(const Name: String; WriteFunc: TJSONCondWriteArrayFunc); overload; inline;
     procedure WriteArrayOrNull(const Name: String; WriteFunc: TJSONCondWriteArrayFunc); inline;
     function WriteObject(const Name: String): IJSONObjectWriter; overload; inline;
-    procedure WriteObject(const Name: String; WriteFunc: TJSONCondWriteObjectFunc); overload; inline;
+    procedure WriteObject(const Name: String;
+      WriteFunc: TJSONCondWriteObjectFunc); overload; inline;
     procedure WriteObjectOrNull(const Name: String; WriteFunc: TJSONCondWriteObjectFunc); inline;
     procedure Remove(const Name: String);
   public
