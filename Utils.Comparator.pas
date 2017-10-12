@@ -36,13 +36,20 @@ type
   strict private
     FValue: Boolean;
   public
-    class function Comparing<T>(
-      const Left, Right: T): TEqualityComparator; overload; inline; static;
-    class function Comparing<T>(const Left, Right: T;
-      const Comparison: TEqualityComparison<T>): TEqualityComparator; overload; inline; static;
-    function ThenComparing<T>(const Left, Right: T): TEqualityComparator; overload; inline;
-    function ThenComparing<T>(const Left, Right: T;
+    class function Init: TEqualityComparator; inline; static;
+    function ComparingGeneric<T>(const Left, Right: T): TEqualityComparator; overload; inline;
+    function ComparingGeneric<T>(const Left, Right: T;
       const Comparison: TEqualityComparison<T>): TEqualityComparator; overload; inline;
+    function Comparing(const Left, Right: Boolean): TEqualityComparator; overload; inline;
+    function Comparing(const Left, Right: Integer): TEqualityComparator; overload; inline;
+    function Comparing(const Left, Right: Int64): TEqualityComparator; overload; inline;
+    function Comparing(const Left, Right: Cardinal): TEqualityComparator; overload; inline;
+    function Comparing(const Left, Right: UInt64): TEqualityComparator; overload; inline;
+    function Comparing(const Left, Right: Single): TEqualityComparator; overload; inline;
+    function Comparing(const Left, Right: Double): TEqualityComparator; overload; inline;
+    function Comparing(const Left, Right: String): TEqualityComparator; overload; inline;
+    function Comparing(const Left, Right: Char): TEqualityComparator; overload; inline;
+    function Comparing(const Left, Right: TObject): TEqualityComparator; overload; inline;
     function Compare: Boolean; inline;
   end;
 
@@ -50,16 +57,26 @@ type
   strict private
     FValue: Integer;
   public
-    class function Comparing<T>(const Left, Right: T): TComparator; overload; inline; static;
-    class function Comparing<T>(const Left, Right: T;
-      const Comparison: TComparison<T>): TComparator; overload; inline; static;
-    function ThenComparing<T>(const Left, Right: T): TComparator; overload; inline;
-    function ThenComparing<T>(const Left, Right: T;
+    class function Init: TComparator; inline; static;
+    function ComparingGeneric<T>(const Left, Right: T): TComparator; overload; inline;
+    function ComparingGeneric<T>(const Left, Right: T;
       const Comparison: TComparison<T>): TComparator; overload; inline;
+    function Comparing(const Left, Right: Boolean): TComparator; overload; inline;
+    function Comparing(const Left, Right: Integer): TComparator; overload; inline;
+    function Comparing(const Left, Right: Int64): TComparator; overload; inline;
+    function Comparing(const Left, Right: Cardinal): TComparator; overload; inline;
+    function Comparing(const Left, Right: UInt64): TComparator; overload; inline;
+    function Comparing(const Left, Right: Single): TComparator; overload; inline;
+    function Comparing(const Left, Right: Double): TComparator; overload; inline;
+    function Comparing(const Left, Right: String): TComparator; overload; inline;
+    function Comparing(const Left, Right: Char): TComparator; overload; inline;
     function Compare: Integer; inline;
   end;
 
 implementation
+
+uses
+  System.SysUtils;
 
 { TEqualityComparator }
 
@@ -68,28 +85,92 @@ begin
   Result := FValue;
 end;
 
-class function TEqualityComparator.Comparing<T>(const Left, Right: T): TEqualityComparator;
+function TEqualityComparator.Comparing(const Left, Right: Boolean): TEqualityComparator;
 begin
+  if (not FValue) then Exit(Self);
+  Result.FValue := (Left = Right);
+end;
+
+function TEqualityComparator.Comparing(const Left, Right: Integer): TEqualityComparator;
+begin
+  if (not FValue) then Exit(Self);
+  Result.FValue := (Left = Right);
+end;
+
+function TEqualityComparator.Comparing(const Left, Right: Int64): TEqualityComparator;
+begin
+  if (not FValue) then Exit(Self);
+  Result.FValue := (Left = Right);
+end;
+
+function TEqualityComparator.Comparing(const Left, Right: Cardinal): TEqualityComparator;
+begin
+  if (not FValue) then Exit(Self);
+  Result.FValue := (Left = Right);
+end;
+
+function TEqualityComparator.Comparing(const Left, Right: UInt64): TEqualityComparator;
+begin
+  if (not FValue) then Exit(Self);
+  Result.FValue := (Left = Right);
+end;
+
+function TEqualityComparator.Comparing(const Left, Right: Single): TEqualityComparator;
+begin
+  if (not FValue) then Exit(Self);
+  Result.FValue := (Left = Right);
+end;
+
+function TEqualityComparator.Comparing(const Left, Right: Double): TEqualityComparator;
+begin
+  if (not FValue) then Exit(Self);
+  Result.FValue := (Left = Right);
+end;
+
+function TEqualityComparator.Comparing(const Left, Right: String): TEqualityComparator;
+begin
+  if (not FValue) then Exit(Self);
+  Result.FValue := (Left = Right);
+end;
+
+function TEqualityComparator.Comparing(const Left, Right: Char): TEqualityComparator;
+begin
+  if (not FValue) then Exit(Self);
+  Result.FValue := (Left = Right);
+end;
+
+function TEqualityComparator.Comparing(const Left, Right: TObject): TEqualityComparator;
+begin
+  if (not FValue) then Exit(Self);
+  if (Left = nil) and (Right = nil) then
+  begin
+    Result.FValue := true;
+  end else
+  if (Left = nil) xor (Right = nil) then
+  begin
+    Result.FValue := false;
+  end else
+  begin
+    Result.FValue := Left.Equals(Right);
+  end;
+end;
+
+function TEqualityComparator.ComparingGeneric<T>(const Left, Right: T): TEqualityComparator;
+begin
+  if (not FValue) then Exit(Self);
   Result.FValue := TEqualityComparer<T>.Default.Equals(Left, Right);
 end;
 
-class function TEqualityComparator.Comparing<T>(const Left, Right: T;
+function TEqualityComparator.ComparingGeneric<T>(const Left, Right: T;
   const Comparison: TEqualityComparison<T>): TEqualityComparator;
 begin
+  if (not FValue) then Exit(Self);
   Result.FValue := TEqualityComparer<T>.Construct(Comparison, nil).Equals(Left, Right);
 end;
 
-function TEqualityComparator.ThenComparing<T>(const Left, Right: T): TEqualityComparator;
+class function TEqualityComparator.Init: TEqualityComparator;
 begin
-  if (not FValue) then Exit(Self);
-  Result := Comparing<T>(Left, Right);
-end;
-
-function TEqualityComparator.ThenComparing<T>(const Left, Right: T;
-  const Comparison: TEqualityComparison<T>): TEqualityComparator;
-begin
-  if (not FValue) then Exit(Self);
-  Result := Comparing<T>(Left, Right, Comparison);
+  Result.FValue := true;
 end;
 
 { TComparator }
@@ -99,28 +180,164 @@ begin
   Result := FValue;
 end;
 
-class function TComparator.Comparing<T>(const Left, Right: T): TComparator;
+function TComparator.Comparing(const Left, Right: Boolean): TComparator;
 begin
+  if (FValue <> 0) then Exit(Self);
+  if (Left = Right) then
+  begin
+    Result.FValue := 0;
+  end else
+  if (Right and (not Left)) then
+  begin
+    Result.FValue := -1;
+  end else
+  if (Left and (not Right)) then
+  begin
+    Result.FValue := 1;
+  end;
+end;
+
+function TComparator.Comparing(const Left, Right: Integer): TComparator;
+begin
+  if (FValue <> 0) then Exit(Self);
+  if (Left = Right) then
+  begin
+    Result.FValue := 0;
+  end else
+  if (Left < Right) then
+  begin
+    Result.FValue := -1;
+  end else
+  if (Left > Right) then
+  begin
+    Result.FValue := 1;
+  end;
+end;
+
+function TComparator.Comparing(const Left, Right: Int64): TComparator;
+begin
+  if (FValue <> 0) then Exit(Self);
+  if (Left = Right) then
+  begin
+    Result.FValue := 0;
+  end else
+  if (Left < Right) then
+  begin
+    Result.FValue := -1;
+  end else
+  if (Left > Right) then
+  begin
+    Result.FValue := 1;
+  end;
+end;
+
+function TComparator.Comparing(const Left, Right: Cardinal): TComparator;
+begin
+  if (FValue <> 0) then Exit(Self);
+  if (Left = Right) then
+  begin
+    Result.FValue := 0;
+  end else
+  if (Left < Right) then
+  begin
+    Result.FValue := -1;
+  end else
+  if (Left > Right) then
+  begin
+    Result.FValue := 1;
+  end;
+end;
+
+function TComparator.Comparing(const Left, Right: UInt64): TComparator;
+begin
+  if (FValue <> 0) then Exit(Self);
+  if (Left = Right) then
+  begin
+    Result.FValue := 0;
+  end else
+  if (Left < Right) then
+  begin
+    Result.FValue := -1;
+  end else
+  if (Left > Right) then
+  begin
+    Result.FValue := 1;
+  end;
+end;
+
+function TComparator.Comparing(const Left, Right: Single): TComparator;
+begin
+  if (FValue <> 0) then Exit(Self);
+  if (Left = Right) then
+  begin
+    Result.FValue := 0;
+  end else
+  if (Left < Right) then
+  begin
+    Result.FValue := -1;
+  end else
+  if (Left > Right) then
+  begin
+    Result.FValue := 1;
+  end;
+end;
+
+function TComparator.Comparing(const Left, Right: Double): TComparator;
+begin
+  if (FValue <> 0) then Exit(Self);
+  if (Left = Right) then
+  begin
+    Result.FValue := 0;
+  end else
+  if (Left < Right) then
+  begin
+    Result.FValue := -1;
+  end else
+  if (Left > Right) then
+  begin
+    Result.FValue := 1;
+  end;
+end;
+
+function TComparator.Comparing(const Left, Right: String): TComparator;
+begin
+  if (FValue <> 0) then Exit(Self);
+  Result.FValue := AnsiCompareStr(Left, Right);
+end;
+
+function TComparator.Comparing(const Left, Right: Char): TComparator;
+begin
+  if (FValue <> 0) then Exit(Self);
+  if (Left = Right) then
+  begin
+    Result.FValue := 0;
+  end else
+  if (Ord(Left) < Ord(Right)) then
+  begin
+    Result.FValue := -1;
+  end else
+  if (Ord(Left) > Ord(Right)) then
+  begin
+    Result.FValue := 1;
+  end;
+end;
+
+function TComparator.ComparingGeneric<T>(const Left, Right: T): TComparator;
+begin
+  if (FValue <> 0) then Exit(Self);
   Result.FValue := TComparer<T>.Default.Compare(Left, Right);
 end;
 
-class function TComparator.Comparing<T>(const Left, Right: T;
+function TComparator.ComparingGeneric<T>(const Left, Right: T;
   const Comparison: TComparison<T>): TComparator;
 begin
+  if (FValue <> 0) then Exit(Self);
   Result.FValue := TComparer<T>.Construct(Comparison).Compare(Left, Right);
 end;
 
-function TComparator.ThenComparing<T>(const Left, Right: T): TComparator;
+class function TComparator.Init: TComparator;
 begin
-  if (FValue <> 0) then Exit(Self);
-  Result := Comparing<T>(Left, Right);
-end;
-
-function TComparator.ThenComparing<T>(const Left, Right: T;
-  const Comparison: TComparison<T>): TComparator;
-begin
-  if (FValue <> 0) then Exit(Self);
-  Result := Comparing<T>(Left, Right, Comparison);
+  Result.FValue := 0;
 end;
 
 end.
