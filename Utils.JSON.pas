@@ -46,6 +46,7 @@ type
   TJSONHelper = record
   public
     class function ValueType(Value: TJSONValue): TJSONType; static;
+    class function Equals(A, B: TJSONValue): Boolean; static;
   end;
 
   EJSONException = class(Exception)
@@ -388,6 +389,65 @@ end;
 {$ENDREGION}
 
 {$REGION 'Class: TJSONHelper'}
+class function TJSONHelper.Equals(A, B: TJSONValue): Boolean;
+var
+  T: TJSONType;
+  I: Integer;
+  AA, AB: TJSONArray;
+  OA, OB: TJSONObject;
+  P: TJSONPair;
+  V: TJSONValue;
+begin
+  Result := true;
+  T := ValueType(A);
+  if (T <> ValueType(B)) then
+  begin
+    Exit(false);
+  end;
+  case T of
+    jsonArray:
+      begin
+        AA := A as TJSONArray;
+        AB := B as TJSONArray;
+        if (AA.Count <> AB.Count) then
+        begin
+          Exit(false);
+        end;
+        for I := 0 to AA.Count - 1 do
+        begin
+          if (not Equals(AA.Items[I], AB.Items[I])) then
+          begin
+            Exit(false);
+          end;
+        end;
+        Exit;
+      end;
+    jsonObject:
+      begin
+        OA := A as TJSONObject;
+        OB := B as TJSONObject;
+        if (OA.Count <> OB.Count) then
+        begin
+          Exit(false);
+        end;
+        for I := 0 to OA.Count - 1 do
+        begin
+          P := OA.Pairs[I];
+          V := OB.Values[P.JsonString.Value];
+          if (not Equals(P.JsonValue, V)) then
+          begin
+            Exit(false);
+          end;
+        end;
+        Exit;
+      end;
+  end;
+  if (A.Value <> B.Value) then
+  begin
+    Exit(false);
+  end;
+end;
+
 class function TJSONHelper.ValueType(Value: TJSONValue): TJSONType;
 begin
   Result := TJSONType.jsonInvalid;
