@@ -7,10 +7,12 @@ program DelphiUtils_Test;
 {$ENDIF}
 
 uses
-	{$If Defined(FASTMM)}
-	FastMM4,
-	{$EndIf}
-	DUnitTestRunner;
+  {$If Defined(FASTMM)}
+  FastMM4,
+  {$EndIf }
+  DUnitTestRunner,
+  Utils.JSON.Test in 'Utils.JSON.Test.pas',
+  Utils.JSON in 'Utils.JSON.pas';
 
 {$R *.RES}
 
