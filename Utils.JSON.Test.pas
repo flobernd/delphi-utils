@@ -133,10 +133,10 @@ begin
 		b.Add(Integer.MaxValue);
 		Check( TJSONHelper.Equals(a, b) );
 
-		a.Remove(0);
+		a.Remove(0).Free();
 		CheckFalse( TJSONHelper.Equals(a, b) );
 
-		b.Remove(0);
+		b.Remove(0).Free();
 		Check( TJSONHelper.Equals(a, b) );
 
 		b.Destroy(); b := (a.Clone() as TJSONArray);
@@ -168,16 +168,16 @@ begin
 		b.AddPair('someText', 'HELLO WORLD');
 		CheckFalse( TJSONHelper.Equals(a, b) );
 
-		b.RemovePair('someText');
-		b.RemovePair('SomeText');
-		b.RemovePair('SOMETEXT');
+		b.RemovePair('someText').Free();
+		b.RemovePair('SomeText').Free();
+		b.RemovePair('SOMETEXT').Free();
 		b.AddPair('someText', 'Hello World');
 		Check( TJSONHelper.Equals(a, b) );
 
-		a.RemovePair('someText');
+		a.RemovePair('someText').Free();
 		CheckFalse( TJSONHelper.Equals(a, b) );
 
-		b.RemovePair('someText');
+		b.RemovePair('someText').Free();
 		Check( TJSONHelper.Equals(a, b) );
 	finally
 		a.Free(); b.Free();
