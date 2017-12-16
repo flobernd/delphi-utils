@@ -8,8 +8,8 @@ type
 		procedure SetUp(); override;
 		procedure TearDown(); override;
 	published
-		procedure ArgumentExceptionOnUnassigned_A();
-		procedure ArgumentExceptionOnUnassigned_B();
+		procedure ReturnsFalseWhenEitherIsNil();
+		procedure ReturnsTrueOnBothNil();
 		procedure NullEqualsNull();
 		procedure BooleanEquals();
 		procedure FloatEquals();
@@ -31,30 +31,22 @@ begin
 	// do nothing
 end;
 
-procedure TestTJsonHelper.ArgumentExceptionOnUnassigned_A();
+procedure TestTJsonHelper.ReturnsFalseWhenEitherIsNil();
 var
-	validObject: TJSONValue;
+	x: TJSONValue;
 begin
-	validObject := TJSONNull.Create();
+	x := TJSONNumber.Create(42);
 	try
-		ExpectedException := EArgumentException;
-		Check( TJSONHelper.Equals(validObject, nil) );
+		CheckFalse( TJSONHelper.Equals(nil, x) );
+		CheckFalse( TJSONHelper.Equals(x, nil) );
 	finally
-		validObject.Destroy();
+		x.Destroy();
 	end;
 end;
 
-procedure TestTJsonHelper.ArgumentExceptionOnUnassigned_B();
-var
-	validObject: TJSONValue;
+procedure TestTJsonHelper.ReturnsTrueOnBothNil();
 begin
-	validObject := TJSONNull.Create();
-	try
-		ExpectedException := EArgumentException;
-		Check( TJSONHelper.Equals(nil, validObject) );
-	finally
-		validObject.Destroy();
-	end;
+    Check( TJSONHelper.Equals(nil, nil) );
 end;
 
 procedure TestTJsonHelper.NullEqualsNull();
@@ -68,9 +60,6 @@ begin
 
 		Check( TJSONHelper.Equals(a, a) );
 		Check( TJSONHelper.Equals(a, b) );
-
-		CheckFalse( TJSONHelper.Equals(a, nil) );
-		CheckFalse( TJSONHelper.Equals(nil, b) );
 	finally
 		a.Free(); b.Free();
 	end;
