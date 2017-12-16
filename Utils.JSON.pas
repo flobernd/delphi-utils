@@ -405,6 +405,7 @@ begin
     Exit(false);
   end;
   case T of
+    jsonInvalid: Exit(true);
     jsonArray:
       begin
         AA := A as TJSONArray;
