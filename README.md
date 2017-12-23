@@ -4,6 +4,9 @@
 A collection of useful Delphi functions- and classes
 
 ## Table of contents
+### [AtomicTypes](https://github.com/flobernd/delphi-utils/wiki/AtomicTypes)
+Atomic boolean/numeric/enum/set types
+
 ### [Comparator](https://github.com/flobernd/delphi-utils/wiki/Comparator)
 Helper classes for custom object-comparison implementations
 
