@@ -28,6 +28,9 @@ unit Utils.AtomicTypes;
 
 interface
 
+uses
+  System.TypInfo;
+
 type
   {**
    * @brief Implements an atomic boolean type.
@@ -226,8 +229,122 @@ type
   {**
    * @brief Implements an atomic set type.
    * }
-  TAtomicSet<T: record> = record
-
+  TAtomicSet<T, V> = record
+  strict private type
+    TOrdinalType = Int32;
+    POrdinalType = ^TOrdinalType;
+    PGenericType = ^T;
+    TSetType     = set of 0..31;
+    PSetType     = ^TSetType;
+  strict private
+    class var OrdinalMask: TOrdinalType;
+  strict private
+    FValue: TOrdinalType;
+  strict private
+    class procedure CheckGenericType; static; inline;
+  strict private
+    class function ToOrdinal(const Value: T): TOrdinalType; static; inline;
+    class function ToGeneric(const Value: TOrdinalType): T; overload; static; inline;
+    class function ToGeneric(const Value: TSetType): T; overload; static; inline;
+  public
+    {**
+     * @brief Returns the current value of the `TAtomicSet`.
+     *
+     * @return  The current value of the `TAtomicSet`.
+     * }
+    function Get: T; inline;
+    {**
+     * @brief Sets the value of the `TAtomicSet`.
+     *
+     * @param Value The new value.
+     * }
+    procedure Assign(const Value: T); inline;
+    {**
+     * @brief Returns the current value of the `TAtomicSet`. This operation is NOT ATOMIC.
+     *
+     * @return  The current value of the `TAtomicSet`.
+     *
+     * Use this method only, if no other thread concurrently writes the value of this
+     * `TAtomicSet` at the same time.
+     * }
+    function UnsafeGet: T; inline;
+    {**
+     * @brief Sets the value of the `TAtomicSet`. This operation is NOT ATOMIC.
+     *
+     * @param Value The new value.
+     *
+     * Use this method only, if no other thread concurrently accesses (read or write) the value
+     * of this `TAtomicSet` at the same time.
+     * }
+    procedure UnsafeAssign(const Value: T); inline;
+  public
+    {**
+     * @brief Exchanges the value of the `TAtomicSet`.
+     *
+     * @param Value The new value.
+     *
+     * @return  The old value of this `TAtomicSet`.
+     * }
+    function Exchange(const Value: T): T; inline;
+    {**
+     * @brief Exchanges the value of the `TAtomicSet`, after comparing with the given value.
+     *
+     * @param Value     The new value.
+     * @param Comparand The value to compare against.
+     *
+     * @return  The old value of this `TAtomicSet`.
+     * }
+    function CompareExchange(const Value, Comparand: T): T; inline;
+  public
+    {**
+     * @brief Includes an element to the `TAtomicSet`.
+     *
+     * @param Value The element to include.
+     * }
+    procedure Include(const Value: V); inline;
+    {**
+     * @brief Excludes an element from the `TAtomicSet`.
+     *
+     * @param Value The element to exclude.
+     * }
+    procedure Exclude(const Value: V); inline;
+  public
+    class constructor Create;
+  public
+    {**
+     * @brief Implicit cast to the generic type. This operation performs an ATOMIC read.
+     *
+     * @param A The `TAtomicSet`.
+     *
+     * @return  The current value of the `TAtomicSet`.
+     * }
+    class operator Implicit(const A: TAtomicSet<T, V>): T; inline;
+    class operator Explicit(const A: TAtomicSet<T, V>): T; inline;
+    class operator In(const A: V; const B: TAtomicSet<T, V>): Boolean; //inline;
+    class operator Equal(const A, B: TAtomicSet<T, V>): Boolean; inline;
+    class operator Equal(const A: TAtomicSet<T, V>; const B: T): Boolean; inline;
+    class operator Equal(const A: T; const B: TAtomicSet<T, V>): Boolean; inline;
+    class operator GreaterThan(const A, B: TAtomicSet<T, V>): Boolean; inline;
+    class operator GreaterThan(const A: TAtomicSet<T, V>; const B: T): Boolean; inline;
+    class operator GreaterThan(const A: T; const B: TAtomicSet<T, V>): Boolean; inline;
+    class operator GreaterThanOrEqual(const A, B: TAtomicSet<T, V>): Boolean; inline;
+    class operator GreaterThanOrEqual(const A: TAtomicSet<T, V>; const B: T): Boolean; inline;
+    class operator GreaterThanOrEqual(const A: T; const B: TAtomicSet<T, V>): Boolean; inline;
+    class operator LessThan(const A, B: TAtomicSet<T, V>): Boolean; inline;
+    class operator LessThan(const A: TAtomicSet<T, V>; const B: T): Boolean; inline;
+    class operator LessThan(const A: T; const B: TAtomicSet<T, V>): Boolean; inline;
+    class operator LessThanOrEqual(const A, B: TAtomicSet<T, V>): Boolean; inline;
+    class operator LessThanOrEqual(const A: TAtomicSet<T, V>; const B: T): Boolean; inline;
+    class operator LessThanOrEqual(const A: T; const B: TAtomicSet<T, V>): Boolean; inline;
+    class operator NotEqual(const A, B: TAtomicSet<T, V>): Boolean; inline;
+    class operator NotEqual(const A: TAtomicSet<T, V>; const B: T): Boolean; inline;
+    class operator NotEqual(const A: T; const B: TAtomicSet<T, V>): Boolean; inline;
+    class operator Add(const A, B: TAtomicSet<T, V>): T; inline;
+    class operator Add(const A: TAtomicSet<T, V>; const B: T): T; inline;
+    class operator Add(const A: T; const B: TAtomicSet<T, V>): T; inline;
+    class operator Subtract(const A, B: TAtomicSet<T, V>): T; inline;
+    class operator Subtract(const A: TAtomicSet<T, V>; const B: T): T; inline;
+    class operator Subtract(const A: T; const B: TAtomicSet<T, V>): T; inline;
   end;
 
   {**
@@ -579,14 +696,14 @@ type
   end;
 
   {**
-   * @brief Implements an single type.
+   * @brief Implements an atomic single type.
    * }
   TAtomicSingle = record
 
   end;
 
   {**
-   * @brief Implements an single type.
+   * @brief Implements an atomic double type.
    * }
   TAtomicDouble = record
 
@@ -605,7 +722,7 @@ type
 implementation
 
 uses
-  System.TypInfo;
+  System.SyncObjs;
 
 {$REGION 'Class: TAtomicBoolean<T>'}
 class procedure TAtomicBoolean<T>.CheckGenericType;
@@ -950,6 +1067,218 @@ end;
 class operator TAtomicEnum<T>.NotEqual(const A: T; const B: TAtomicEnum<T>): Boolean;
 begin
   Result := (ToOrdinal(A) <> B.FValue);
+end;
+{$ENDREGION}
+
+{$REGION 'Class: TAtomicSet<T, V>'}
+class procedure TAtomicSet<T, V>.CheckGenericType;
+begin
+  Assert(PTypeInfo(TypeInfo(T))^.Kind in [tkSet],
+    'Unsupported generic type.');
+  Assert(SizeOf(T) <= 4,
+    'The generic type exceeded the maximum of 4 bytes.');
+  Assert(PTypeInfo(TypeInfo(V))^.Kind in [tkEnumeration],
+    'Unsupported generic type.');
+  Assert(
+    (PTypeInfo(TypeInfo(V))^.TypeData^.MinValue =  0) and
+    (PTypeInfo(TypeInfo(V))^.TypeData^.MaxValue < 32),
+    'The generic type exceeded the maximum of 32 elements');
+end;
+
+class function TAtomicSet<T, V>.ToOrdinal(const Value: T): TOrdinalType;
+begin
+  Result := POrdinalType(@Value)^;
+end;
+
+class function TAtomicSet<T, V>.ToGeneric(const Value: TOrdinalType): T;
+begin
+  Result := PGenericType(@Value)^;
+end;
+
+class function TAtomicSet<T, V>.ToGeneric(const Value: TSetType): T;
+begin
+  Result := PGenericType(@Value)^;
+end;
+
+function TAtomicSet<T, V>.Get: T;
+begin
+  Result := ToGeneric(FValue);
+end;
+
+procedure TAtomicSet<T, V>.Assign(const Value: T);
+begin
+  AtomicExchange(FValue, ToOrdinal(Value) and OrdinalMask);
+end;
+
+function TAtomicSet<T, V>.UnsafeGet: T;
+begin
+  Result := Get;
+end;
+
+procedure TAtomicSet<T, V>.UnsafeAssign(const Value: T);
+begin
+  FValue := ToOrdinal(Value) and OrdinalMask;
+end;
+
+function TAtomicSet<T, V>.Exchange(const Value: T): T;
+begin
+  Result := ToGeneric(AtomicExchange(FValue, ToOrdinal(Value)));
+end;
+
+function TAtomicSet<T, V>.CompareExchange(const Value, Comparand: T): T;
+begin
+  Result := ToGeneric(AtomicCmpExchange(FValue, ToOrdinal(Value), ToOrdinal(Comparand)));
+end;
+
+procedure TAtomicSet<T, V>.Include(const Value: V);
+begin
+  TInterlocked.BitTestAndSet(FValue, PByte(@Value)^);
+end;
+
+procedure TAtomicSet<T, V>.Exclude(const Value: V);
+begin
+  TInterlocked.BitTestAndClear(FValue, PByte(@Value)^);
+end;
+
+class constructor TAtomicSet<T, V>.Create;
+begin
+  CheckGenericType;
+  OrdinalMask := (TOrdinalType(-1) shr ((SizeOf(TOrdinalType) - SizeOf(T)) * 8));
+end;
+
+class operator TAtomicSet<T, V>.Implicit(const A: TAtomicSet<T, V>): T;
+begin
+  Result := ToGeneric(A.FValue);
+end;
+
+class operator TAtomicSet<T, V>.Explicit(const A: TAtomicSet<T, V>): T;
+begin
+  Result := A;
+end;
+
+class operator TAtomicSet<T, V>.In(const A: V; const B: TAtomicSet<T, V>): Boolean;
+begin
+  Result := PByte(@A)^ in PSetType(@B.FValue)^;
+end;
+
+class operator TAtomicSet<T, V>.Equal(const A, B: TAtomicSet<T, V>): Boolean;
+begin
+  Result := (A.FValue = B.FValue);
+end;
+
+class operator TAtomicSet<T, V>.Equal(const A: TAtomicSet<T, V>; const B: T): Boolean;
+begin
+  Result := (A.FValue = ToOrdinal(B));
+end;
+
+class operator TAtomicSet<T, V>.Equal(const A: T; const B: TAtomicSet<T, V>): Boolean;
+begin
+  Result := (ToOrdinal(A) = B.FValue);
+end;
+
+class operator TAtomicSet<T, V>.GreaterThan(const A, B: TAtomicSet<T, V>): Boolean;
+begin
+  Result := (A.FValue > B.FValue);
+end;
+
+class operator TAtomicSet<T, V>.GreaterThan(const A: TAtomicSet<T, V>; const B: T): Boolean;
+begin
+  Result := (A.FValue > ToOrdinal(B));
+end;
+
+class operator TAtomicSet<T, V>.GreaterThan(const A: T; const B: TAtomicSet<T, V>): Boolean;
+begin
+  Result := (ToOrdinal(A) > B.FValue);
+end;
+
+class operator TAtomicSet<T, V>.GreaterThanOrEqual(const A, B: TAtomicSet<T, V>): Boolean;
+begin
+  Result := (A.FValue >= B.FValue);
+end;
+
+class operator TAtomicSet<T, V>.GreaterThanOrEqual(const A: TAtomicSet<T, V>; const B: T): Boolean;
+begin
+  Result := (A.FValue >= ToOrdinal(B));
+end;
+
+class operator TAtomicSet<T, V>.GreaterThanOrEqual(const A: T; const B: TAtomicSet<T, V>): Boolean;
+begin
+  Result := (ToOrdinal(A) >= B.FValue);
+end;
+
+class operator TAtomicSet<T, V>.LessThan(const A, B: TAtomicSet<T, V>): Boolean;
+begin
+  Result := (A.FValue < B.FValue);
+end;
+
+class operator TAtomicSet<T, V>.LessThan(const A: TAtomicSet<T, V>; const B: T): Boolean;
+begin
+  Result := (A.FValue < ToOrdinal(B));
+end;
+
+class operator TAtomicSet<T, V>.LessThan(const A: T; const B: TAtomicSet<T, V>): Boolean;
+begin
+  Result := (ToOrdinal(A) < B.FValue);
+end;
+
+class operator TAtomicSet<T, V>.LessThanOrEqual(const A, B: TAtomicSet<T, V>): Boolean;
+begin
+  Result := (A.FValue <= B.FValue);
+end;
+
+class operator TAtomicSet<T, V>.LessThanOrEqual(const A: TAtomicSet<T, V>; const B: T): Boolean;
+begin
+  Result := (A.FValue <= ToOrdinal(B));
+end;
+
+class operator TAtomicSet<T, V>.LessThanOrEqual(const A: T; const B: TAtomicSet<T, V>): Boolean;
+begin
+  Result := (ToOrdinal(A) <= B.FValue);
+end;
+
+class operator TAtomicSet<T, V>.NotEqual(const A, B: TAtomicSet<T, V>): Boolean;
+begin
+  Result := (A.FValue <> B.FValue);
+end;
+
+class operator TAtomicSet<T, V>.NotEqual(const A: TAtomicSet<T, V>; const B: T): Boolean;
+begin
+  Result := (A.FValue <> ToOrdinal(B));
+end;
+
+class operator TAtomicSet<T, V>.NotEqual(const A: T; const B: TAtomicSet<T, V>): Boolean;
+begin
+  Result := (ToOrdinal(A) <> B.FValue);
+end;
+
+class operator TAtomicSet<T, V>.Add(const A, B: TAtomicSet<T, V>): T;
+begin
+  Result := ToGeneric(PSetType(@A.FValue)^ + PSetType(@B.FValue)^);
+end;
+
+class operator TAtomicSet<T, V>.Add(const A: TAtomicSet<T, V>; const B: T): T;
+begin
+  Result := ToGeneric(PSetType(@A.FValue)^ + PSetType(@B)^);
+end;
+
+class operator TAtomicSet<T, V>.Add(const A: T; const B: TAtomicSet<T, V>): T;
+begin
+  Result := ToGeneric(PSetType(@A)^ + PSetType(@B.FValue)^);
+end;
+
+class operator TAtomicSet<T, V>.Subtract(const A, B: TAtomicSet<T, V>): T;
+begin
+  Result := ToGeneric(PSetType(@A.FValue)^ - PSetType(@B.FValue)^);
+end;
+
+class operator TAtomicSet<T, V>.Subtract(const A: TAtomicSet<T, V>; const B: T): T;
+begin
+  Result := ToGeneric(PSetType(@A.FValue)^ - PSetType(@B)^)
+end;
+
+class operator TAtomicSet<T, V>.Subtract(const A: T; const B: TAtomicSet<T, V>): T;
+begin
+  Result := ToGeneric(PSetType(@A)^ - PSetType(@B.FValue)^);
 end;
 {$ENDREGION}
 
