@@ -1101,15 +1101,17 @@ end;
 class procedure TAtomicSet<T, V>.CheckGenericType;
 begin
   Assert(PTypeInfo(TypeInfo(T))^.Kind in [tkSet],
-    'Unsupported generic type.');
+    'Unsupported generic set type.');
   Assert(SizeOf(T) <= 4,
-    'The generic type exceeded the maximum of 4 bytes.');
+    'The generic set type exceeded the maximum of 4 bytes.');
+  Assert(PTypeInfo(TypeInfo(V)) = PTypeInfo(TypeInfo(T))^.TypeData^.CompType^,
+    'Mismatching enum type');
   Assert(PTypeInfo(TypeInfo(V))^.Kind in [tkEnumeration],
-    'Unsupported generic type.');
+    'Unsupported generic enum type.');
   Assert(
     (PTypeInfo(TypeInfo(V))^.TypeData^.MinValue =  0) and
     (PTypeInfo(TypeInfo(V))^.TypeData^.MaxValue < 32),
-    'The generic type exceeded the maximum of 32 elements');
+    'The generic enum type exceeded the maximum of 32 elements');
 end;
 
 class function TAtomicSet<T, V>.ToOrdinal(const Value: T): TOrdinalType;
