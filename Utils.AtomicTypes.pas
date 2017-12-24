@@ -138,6 +138,8 @@ type
     PGenericType = ^T;
   strict private
     class var OrdinalMask: TOrdinalType;
+    class var EnumMinValue: T;
+    class var EnumMaxValue: T;
   strict private
     FValue: TOrdinalType;
   strict private
@@ -194,6 +196,19 @@ type
      * @return  The old value of this `TAtomicEnum`.
      * }
     function CompareExchange(const Value, Comparand: T): T; inline;
+  public
+    {**
+     * @brief Returns the first element of the `TAtomicEnum`.
+     *
+     * @return  The first element of the `TAtomicEnum`.
+     * }
+    class function MinValue: T; static; inline;
+    {**
+     * @brief Returns the last element of the `TAtomicEnum`.
+     *
+     * @return  The last element of the `TAtomicEnum`.
+     * }
+    class function MaxValue: T; static; inline;
   public
     class constructor Create;
   public
@@ -320,7 +335,7 @@ type
      * }
     class operator Implicit(const A: TAtomicSet<T, V>): T; inline;
     class operator Explicit(const A: TAtomicSet<T, V>): T; inline;
-    class operator In(const A: V; const B: TAtomicSet<T, V>): Boolean; //inline;
+    class operator In(const A: V; const B: TAtomicSet<T, V>): Boolean; inline;
     class operator Equal(const A, B: TAtomicSet<T, V>): Boolean; inline;
     class operator Equal(const A: TAtomicSet<T, V>; const B: T): Boolean; inline;
     class operator Equal(const A: T; const B: TAtomicSet<T, V>): Boolean; inline;
@@ -963,10 +978,22 @@ begin
   Result := ToGeneric(AtomicCmpExchange(FValue, ToOrdinal(Value), ToOrdinal(Comparand)));
 end;
 
+class function TAtomicEnum<T>.MinValue: T;
+begin
+  Result := EnumMinValue;
+end;
+
+class function TAtomicEnum<T>.MaxValue: T;
+begin
+  Result := EnumMaxValue;
+end;
+
 class constructor TAtomicEnum<T>.Create;
 begin
   CheckGenericType;
   OrdinalMask := (TOrdinalType(-1) shr ((SizeOf(TOrdinalType) - SizeOf(T)) * 8));
+  EnumMinValue := ToGeneric(PTypeInfo(TypeInfo(T))^.TypeData^.MinValue);
+  EnumMaxValue := ToGeneric(PTypeInfo(TypeInfo(T))^.TypeData^.MaxValue);
 end;
 
 class operator TAtomicEnum<T>.Implicit(const A: TAtomicEnum<T>): T;
