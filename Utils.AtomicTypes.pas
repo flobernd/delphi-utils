@@ -244,11 +244,13 @@ type
   {**
    * @brief Implements an atomic set type.
    * }
-  TAtomicSet<T, V> = record
+  TAtomicSet<T; V: record> = record
   strict private type
     TOrdinalType = Int32;
     POrdinalType = ^TOrdinalType;
     PGenericType = ^T;
+    TEnumType    = UInt8;
+    PEnumType    = ^TEnumType;
     TSetType     = set of 0..31;
     PSetType     = ^TSetType;
   strict private
@@ -379,6 +381,7 @@ type
   strict private
     class function ToOrdinal(const Value: T): TOrdinalType; static; inline;
     class function ToGeneric(const Value: TOrdinalType): T; static; inline;
+    class function Compare(const A, B: T): Integer; static; inline;
   strict private
     function GetOrdinal: TOrdinalType; inline;
   public
@@ -545,14 +548,13 @@ type
     POrdinalType = ^TOrdinalType;
     PGenericType = ^T;
   strict private
-    class var OrdinalMask: TOrdinalType;
-  strict private
     FValue: TOrdinalType;
   strict private
     class procedure CheckGenericType; static; inline;
   strict private
     class function ToOrdinal(const Value: T): TOrdinalType; static; inline;
     class function ToGeneric(const Value: TOrdinalType): T; static; inline;
+    class function Compare(const A, B: T): Integer; static; inline;
   strict private
     function GetOrdinal: TOrdinalType; inline;
   public
@@ -1161,12 +1163,12 @@ end;
 
 procedure TAtomicSet<T, V>.Include(const Value: V);
 begin
-  TInterlocked.BitTestAndSet(FValue, PByte(@Value)^);
+  TInterlocked.BitTestAndSet(FValue, PEnumType(@Value)^);
 end;
 
 procedure TAtomicSet<T, V>.Exclude(const Value: V);
 begin
-  TInterlocked.BitTestAndClear(FValue, PByte(@Value)^);
+  TInterlocked.BitTestAndClear(FValue, PEnumType(@Value)^);
 end;
 
 class constructor TAtomicSet<T, V>.Create;
@@ -1187,7 +1189,7 @@ end;
 
 class operator TAtomicSet<T, V>.In(const A: V; const B: TAtomicSet<T, V>): Boolean;
 begin
-  Result := PByte(@A)^ in PSetType(@B.FValue)^;
+  Result := PEnumType(@A)^ in PSetType(@B.FValue)^;
 end;
 
 class operator TAtomicSet<T, V>.Equal(const A, B: TAtomicSet<T, V>): Boolean;
@@ -1197,12 +1199,12 @@ end;
 
 class operator TAtomicSet<T, V>.Equal(const A: TAtomicSet<T, V>; const B: T): Boolean;
 begin
-  Result := (A.FValue = ToOrdinal(B));
+  Result := (A.FValue = ToOrdinal(B) and OrdinalMask);
 end;
 
 class operator TAtomicSet<T, V>.Equal(const A: T; const B: TAtomicSet<T, V>): Boolean;
 begin
-  Result := (ToOrdinal(A) = B.FValue);
+  Result := (ToOrdinal(A) and OrdinalMask = B.FValue);
 end;
 
 class operator TAtomicSet<T, V>.GreaterThan(const A, B: TAtomicSet<T, V>): Boolean;
@@ -1212,12 +1214,12 @@ end;
 
 class operator TAtomicSet<T, V>.GreaterThan(const A: TAtomicSet<T, V>; const B: T): Boolean;
 begin
-  Result := (A.FValue > ToOrdinal(B));
+  Result := (A.FValue > ToOrdinal(B) and OrdinalMask);
 end;
 
 class operator TAtomicSet<T, V>.GreaterThan(const A: T; const B: TAtomicSet<T, V>): Boolean;
 begin
-  Result := (ToOrdinal(A) > B.FValue);
+  Result := (ToOrdinal(A) and OrdinalMask > B.FValue);
 end;
 
 class operator TAtomicSet<T, V>.GreaterThanOrEqual(const A, B: TAtomicSet<T, V>): Boolean;
@@ -1227,12 +1229,12 @@ end;
 
 class operator TAtomicSet<T, V>.GreaterThanOrEqual(const A: TAtomicSet<T, V>; const B: T): Boolean;
 begin
-  Result := (A.FValue >= ToOrdinal(B));
+  Result := (A.FValue >= ToOrdinal(B) and OrdinalMask);
 end;
 
 class operator TAtomicSet<T, V>.GreaterThanOrEqual(const A: T; const B: TAtomicSet<T, V>): Boolean;
 begin
-  Result := (ToOrdinal(A) >= B.FValue);
+  Result := (ToOrdinal(A) and OrdinalMask >= B.FValue);
 end;
 
 class operator TAtomicSet<T, V>.LessThan(const A, B: TAtomicSet<T, V>): Boolean;
@@ -1242,12 +1244,12 @@ end;
 
 class operator TAtomicSet<T, V>.LessThan(const A: TAtomicSet<T, V>; const B: T): Boolean;
 begin
-  Result := (A.FValue < ToOrdinal(B));
+  Result := (A.FValue < ToOrdinal(B) and OrdinalMask);
 end;
 
 class operator TAtomicSet<T, V>.LessThan(const A: T; const B: TAtomicSet<T, V>): Boolean;
 begin
-  Result := (ToOrdinal(A) < B.FValue);
+  Result := (ToOrdinal(A) and OrdinalMask < B.FValue);
 end;
 
 class operator TAtomicSet<T, V>.LessThanOrEqual(const A, B: TAtomicSet<T, V>): Boolean;
@@ -1257,12 +1259,12 @@ end;
 
 class operator TAtomicSet<T, V>.LessThanOrEqual(const A: TAtomicSet<T, V>; const B: T): Boolean;
 begin
-  Result := (A.FValue <= ToOrdinal(B));
+  Result := (A.FValue <= ToOrdinal(B) and OrdinalMask);
 end;
 
 class operator TAtomicSet<T, V>.LessThanOrEqual(const A: T; const B: TAtomicSet<T, V>): Boolean;
 begin
-  Result := (ToOrdinal(A) <= B.FValue);
+  Result := (ToOrdinal(A) and OrdinalMask <= B.FValue);
 end;
 
 class operator TAtomicSet<T, V>.NotEqual(const A, B: TAtomicSet<T, V>): Boolean;
@@ -1272,12 +1274,12 @@ end;
 
 class operator TAtomicSet<T, V>.NotEqual(const A: TAtomicSet<T, V>; const B: T): Boolean;
 begin
-  Result := (A.FValue <> ToOrdinal(B));
+  Result := (A.FValue <> ToOrdinal(B) and OrdinalMask);
 end;
 
 class operator TAtomicSet<T, V>.NotEqual(const A: T; const B: TAtomicSet<T, V>): Boolean;
 begin
-  Result := (ToOrdinal(A) <> B.FValue);
+  Result := (ToOrdinal(A) and OrdinalMask <> B.FValue);
 end;
 
 class operator TAtomicSet<T, V>.Add(const A, B: TAtomicSet<T, V>): T;
@@ -1328,6 +1330,64 @@ end;
 class function TAtomicInteger<T>.ToOrdinal(const Value: T): TOrdinalType;
 begin
   Result := POrdinalType(@Value)^;
+end;
+
+class function TAtomicInteger<T>.Compare(const A, B: T): Integer;
+type
+  PUInt8  = ^UInt8;
+  PUInt16 = ^UInt16;
+  PUInt32 = ^UInt32;
+  PInt8   = ^Int8;
+  PInt16  = ^Int16;
+  PInt32  = ^Int32;
+begin
+  Result := 0;
+  if TypeInfo(T) = TypeInfo(UInt8) then
+  begin
+    if (PUInt8(@A)^  > PUInt8(@B)^) then Result :=  1 else
+    if (PUInt8(@A)^  < PUInt8(@B)^) then Result := -1;
+  end else
+  if TypeInfo(T) = TypeInfo(UInt16) then
+  begin
+    if (PUInt16(@A)^ > PUInt16(@B)^) then Result :=  1 else
+    if (PUInt16(@A)^ < PUInt16(@B)^) then Result := -1;
+  end else
+  if TypeInfo(T) = TypeInfo(UInt32) then
+  begin
+    if (PUInt32(@A)^ > PUInt32(@B)^) then Result :=  1 else
+    if (PUInt32(@A)^ < PUInt32(@B)^) then Result := -1;
+  end else
+  if TypeInfo(T) = TypeInfo(Int8) then
+  begin
+    if (PInt8(@A)^   > PInt8(@B)^) then Result :=  1 else
+    if (PInt8(@A)^   < PInt8(@B)^) then Result := -1;
+  end else
+  if TypeInfo(T) = TypeInfo(Int16) then
+  begin
+    if (PInt16(@A)^  > PInt16(@B)^) then Result :=  1 else
+    if (PInt16(@A)^  < PInt16(@B)^) then Result := -1;
+  end else
+  if TypeInfo(T) = TypeInfo(Int32) then
+  begin
+    if (PInt32(@A)^  > PInt32(@B)^) then Result :=  1 else
+    if (PInt32(@A)^  < PInt32(@B)^) then Result := -1;
+  end else
+  begin
+    case GetTypeData(TypeInfo(t)).OrdType of
+      otUByte: if ((PUInt8 (@A)^) > (PUInt8 (@B)^)) then Result :=  1 else
+               if ((PUInt8 (@A)^) < (PUInt8 (@B)^)) then Result := -1;
+      otUWord: if ((PUInt16(@A)^) > (PUInt16(@B)^)) then Result :=  1 else
+               if ((PUInt16(@A)^) < (PUInt16(@B)^)) then Result := -1;
+      otULong: if ((PUInt32(@A)^) > (PUInt32(@B)^)) then Result :=  1 else
+               if ((PUInt32(@A)^) < (PUInt32(@B)^)) then Result := -1;
+      otSByte: if ((PInt8  (@A)^) > (PInt8  (@B)^)) then Result :=  1 else
+               if ((PInt8  (@A)^) < (PInt8  (@B)^)) then Result := -1;
+      otSWord: if ((PInt16 (@A)^) > (PInt16 (@B)^)) then Result :=  1 else
+               if ((PInt16 (@A)^) < (PInt16 (@B)^)) then Result := -1;
+      otSLong: if ((PInt32 (@A)^) > (PInt32 (@B)^)) then Result :=  1 else
+               if ((PInt32 (@A)^) < (PInt32 (@B)^)) then Result := -1;
+    end;
+  end;
 end;
 
 function TAtomicInteger<T>.GetOrdinal: TOrdinalType;
@@ -1505,12 +1565,12 @@ begin
   end else
   begin
     case GetTypeData(TypeInfo(t)).OrdType of
-      otSByte: Result := Int8(A.GetOrdinal and OrdinalMask);
-      otUByte: Result := UInt8(A.GetOrdinal and OrdinalMask);
-      otSWord: Result := Int16(A.GetOrdinal and OrdinalMask);
-      otUWord: Result := UInt16(A.GetOrdinal and OrdinalMask);
-      otSLong: Result := Int32(A.GetOrdinal and OrdinalMask);
-      otULong: Result := UInt32(A.GetOrdinal and OrdinalMask);
+      otUByte: Result := UInt8 (A.GetOrdinal);
+      otUWord: Result := UInt16(A.GetOrdinal);
+      otULong: Result := UInt32(A.GetOrdinal);
+      otSByte: Result := Int8  (A.GetOrdinal);
+      otSWord: Result := Int16 (A.GetOrdinal);
+      otSLong: Result := Int32 (A.GetOrdinal);
     end;
   end;
 end;
@@ -1547,64 +1607,64 @@ end;
 
 class operator TAtomicInteger<T>.GreaterThan(const A, B: TAtomicInteger<T>): Boolean;
 begin
-  Result := (A.GetOrdinal > B.GetOrdinal);
+  Result := (Compare(A.Get, B.Get) > 0);
 end;
 
 class operator TAtomicInteger<T>.GreaterThan(const A: TAtomicInteger<T>; const B: T): Boolean;
 begin
-  Result := (A.GetOrdinal > ToOrdinal(B));
+  Result := (Compare(A.Get, B) > 0);
 end;
 
 class operator TAtomicInteger<T>.GreaterThan(const A: T; const B: TAtomicInteger<T>): Boolean;
 begin
-  Result := (ToOrdinal(A) > B.GetOrdinal);
+  Result := (Compare(A, B.Get) > 0);
 end;
 
 class operator TAtomicInteger<T>.GreaterThanOrEqual(const A, B: TAtomicInteger<T>): Boolean;
 begin
-  Result := (A.GetOrdinal >= B.GetOrdinal);
+  Result := (Compare(A.Get, B.Get) >= 0);
 end;
 
 class operator TAtomicInteger<T>.GreaterThanOrEqual(const A: TAtomicInteger<T>;
   const B: T): Boolean;
 begin
-  Result := (A.GetOrdinal >= ToOrdinal(B));
+  Result := (Compare(A.Get, B) >= 0);
 end;
 
 class operator TAtomicInteger<T>.GreaterThanOrEqual(const A: T;
   const B: TAtomicInteger<T>): Boolean;
 begin
-  Result := (ToOrdinal(A) >= B.GetOrdinal);
+  Result := (Compare(A, B.Get) >= 0);
 end;
 
 class operator TAtomicInteger<T>.LessThan(const A, B: TAtomicInteger<T>): Boolean;
 begin
-  Result := (A.GetOrdinal < B.GetOrdinal);
+  Result := (Compare(A.Get, B.Get) < 0);
 end;
 
 class operator TAtomicInteger<T>.LessThan(const A: TAtomicInteger<T>; const B: T): Boolean;
 begin
-  Result := (A.GetOrdinal < ToOrdinal(B));
+  Result := (Compare(A.Get, B) < 0);
 end;
 
 class operator TAtomicInteger<T>.LessThan(const A: T; const B: TAtomicInteger<T>): Boolean;
 begin
-  Result := (ToOrdinal(A) < B.GetOrdinal);
+  Result := (Compare(A, B.Get) < 0);
 end;
 
 class operator TAtomicInteger<T>.LessThanOrEqual(const A, B: TAtomicInteger<T>): Boolean;
 begin
-  Result := (A.GetOrdinal <= B.GetOrdinal);
+  Result := (Compare(A.Get, B.Get) <= 0);
 end;
 
 class operator TAtomicInteger<T>.LessThanOrEqual(const A: TAtomicInteger<T>; const B: T): Boolean;
 begin
-  Result := (A.GetOrdinal <= ToOrdinal(B));
+  Result := (Compare(A.Get, B) <= 0);
 end;
 
 class operator TAtomicInteger<T>.LessThanOrEqual(const A: T; const B: TAtomicInteger<T>): Boolean;
 begin
-  Result := (ToOrdinal(A) <= B.GetOrdinal);
+  Result := (Compare(A, B.Get) <= 0);
 end;
 
 class operator TAtomicInteger<T>.NotEqual(const A, B: TAtomicInteger<T>): Boolean;
@@ -1817,6 +1877,35 @@ begin
   Result := POrdinalType(@Value)^;
 end;
 
+class function TAtomicInteger64<T>.Compare(const A, B: T): Integer;
+type
+  PUInt64 = ^UInt64;
+  PInt64  = ^Int16;
+begin
+  Result := 0;
+  if TypeInfo(T) = TypeInfo(UInt64) then
+  begin
+    if (PUInt64(@A)^ > PUInt64(@B)^) then Result :=  1 else
+    if (PUInt64(@A)^ < PUInt64(@B)^) then Result := -1;
+  end else
+  if TypeInfo(T) = TypeInfo(Int64) then
+  begin
+    if (PInt64(@A)^  > PInt64(@B)^) then Result :=  1 else
+    if (PInt64(@A)^  < PInt64(@B)^) then Result := -1;
+  end else
+  begin
+    if (GetTypeData(TypeInfo(T)).MinInt64Value = 0) then
+    begin
+      if (PUInt64(@A)^ > PUInt64(@B)^) then Result :=  1 else
+      if (PUInt64(@A)^ < PUInt64(@B)^) then Result := -1;
+    end else
+    begin
+      if (PInt64(@A)^  > PInt64(@B)^) then Result :=  1 else
+      if (PInt64(@A)^  < PInt64(@B)^) then Result := -1;
+    end;
+  end;
+end;
+
 function TAtomicInteger64<T>.GetOrdinal: TOrdinalType;
 begin
   Result := AtomicCmpExchange(FValue, 0, 0);
@@ -1828,21 +1917,8 @@ begin
 end;
 
 procedure TAtomicInteger64<T>.Assign(const Value: T);
-type
-  PUInt64 = ^UInt64;
-  PInt64  = ^Int16;
 begin
-  if TypeInfo(T) = TypeInfo(UInt64) then
-  begin
-    AtomicExchange(FValue, PUInt64(@Value)^);
-  end else
-  if TypeInfo(T) = TypeInfo(Int64) then
-  begin
-    AtomicExchange(FValue, PInt64(@Value)^);
-  end else
-  begin
-    AtomicExchange(FValue, ToOrdinal(Value) and OrdinalMask);
-  end;
+  AtomicExchange(FValue, ToOrdinal(Value));
 end;
 
 function TAtomicInteger64<T>.UnsafeGet: T;
@@ -1851,21 +1927,8 @@ begin
 end;
 
 procedure TAtomicInteger64<T>.UnsafeAssign(const Value: T);
-type
-  PUInt64 = ^UInt64;
-  PInt64  = ^Int16;
 begin
-  if TypeInfo(T) = TypeInfo(UInt64) then
-  begin
-    FValue := PUInt64(@Value)^;
-  end else
-  if TypeInfo(T) = TypeInfo(Int64) then
-  begin
-    FValue := PInt64(@Value)^;
-  end else
-  begin
-    FValue := ToOrdinal(Value) and OrdinalMask;
-  end;
+  FValue := ToOrdinal(Value);
 end;
 
 function TAtomicInteger64<T>.Exchange(const Value: T): T;
@@ -1901,7 +1964,6 @@ end;
 class constructor TAtomicInteger64<T>.Create;
 begin
   CheckGenericType;
-  OrdinalMask := (TOrdinalType(-1) shr ((SizeOf(TOrdinalType) - SizeOf(T)) * 8));
 end;
 
 class operator TAtomicInteger64<T>.Implicit(const A: TAtomicInteger64<T>): T;
@@ -1933,10 +1995,10 @@ begin
   begin
     if (GetTypeData(TypeInfo(T)).MinInt64Value = 0) then
     begin
-      Result := UInt64(A.GetOrdinal and OrdinalMask);
+      Result := UInt64(A.GetOrdinal);
     end else
     begin
-      Result := Int64(A.GetOrdinal and OrdinalMask);
+      Result := Int64(A.GetOrdinal);
     end;
   end;
 end;
@@ -1973,66 +2035,66 @@ end;
 
 class operator TAtomicInteger64<T>.GreaterThan(const A, B: TAtomicInteger64<T>): Boolean;
 begin
-  Result := (A.GetOrdinal > B.GetOrdinal);
+  Result := (Compare(A.Get, B.Get) > 0);
 end;
 
 class operator TAtomicInteger64<T>.GreaterThan(const A: TAtomicInteger64<T>; const B: T): Boolean;
 begin
-  Result := (A.GetOrdinal > ToOrdinal(B));
+  Result := (Compare(A.Get, B) > 0);
 end;
 
 class operator TAtomicInteger64<T>.GreaterThan(const A: T; const B: TAtomicInteger64<T>): Boolean;
 begin
-  Result := (ToOrdinal(A) > B.GetOrdinal);
+  Result := (Compare(A, B.Get) > 0);
 end;
 
 class operator TAtomicInteger64<T>.GreaterThanOrEqual(const A, B: TAtomicInteger64<T>): Boolean;
 begin
-  Result := (A.GetOrdinal >= B.GetOrdinal);
+  Result := (Compare(A.Get, B.Get) >= 0);
 end;
 
 class operator TAtomicInteger64<T>.GreaterThanOrEqual(const A: TAtomicInteger64<T>;
   const B: T): Boolean;
 begin
-  Result := (A.GetOrdinal >= ToOrdinal(B));
+  Result := (Compare(A.Get, B) >= 0);
 end;
 
 class operator TAtomicInteger64<T>.GreaterThanOrEqual(const A: T;
   const B: TAtomicInteger64<T>): Boolean;
 begin
-  Result := (ToOrdinal(A) >= B.GetOrdinal);
+  Result := (Compare(A, B.Get) >= 0);
 end;
 
 class operator TAtomicInteger64<T>.LessThan(const A, B: TAtomicInteger64<T>): Boolean;
 begin
-  Result := (A.GetOrdinal < B.GetOrdinal);
+  Result := (Compare(A.Get, B.Get) < 0);
 end;
 
 class operator TAtomicInteger64<T>.LessThan(const A: TAtomicInteger64<T>; const B: T): Boolean;
 begin
-  Result := (A.GetOrdinal < ToOrdinal(B));
+  Result := (Compare(A.Get, B) < 0);
 end;
 
 class operator TAtomicInteger64<T>.LessThan(const A: T; const B: TAtomicInteger64<T>): Boolean;
 begin
-  Result := (ToOrdinal(A) < B.GetOrdinal);
+  Result := (Compare(A, B.Get) < 0);
 end;
 
 class operator TAtomicInteger64<T>.LessThanOrEqual(const A, B: TAtomicInteger64<T>): Boolean;
 begin
-  Result := (A.GetOrdinal <= B.GetOrdinal);
+  Result := (Compare(A.Get, B.Get) <= 0);
 end;
 
 class operator TAtomicInteger64<T>.LessThanOrEqual(const A: TAtomicInteger64<T>;
   const B: T): Boolean;
 begin
-  Result := (A.GetOrdinal <= ToOrdinal(B));
+  Result := (Compare(A.Get, B) <= 0);
 end;
 
 class operator TAtomicInteger64<T>.LessThanOrEqual(const A: T;
   const B: TAtomicInteger64<T>): Boolean;
 begin
-  Result := (ToOrdinal(A) <= B.GetOrdinal);
+  Result := (Compare(A, B.Get) <= 0);
 end;
 
 class operator TAtomicInteger64<T>.NotEqual(const A, B: TAtomicInteger64<T>): Boolean;
