@@ -375,9 +375,11 @@ type
     PUInt8       = ^UInt8;
     PUInt16      = ^UInt16;
     PUInt32      = ^UInt32;
+    PUIntPtr     = ^UIntPtr;
     PInt8        = ^Int8;
     PInt16       = ^Int16;
     PInt32       = ^Int32;
+    PIntPtr      = ^IntPtr;
   strict private
     class var OrdinalMask: TOrdinalType;
   strict private
@@ -561,7 +563,9 @@ type
     POrdinalType = ^TOrdinalType;
     PGenericType = ^T;
     PUInt64      = ^UInt64;
+    PUIntPtr     = ^UIntPtr;
     PInt64       = ^Int64;
+    PIntPtr      = ^IntPtr;
   strict private
     FValue: TOrdinalType;
   strict private
@@ -757,6 +761,13 @@ type
   TAtomicInt16   = TAtomicInteger<Int16>;
   TAtomicInt32   = TAtomicInteger<Int32>;
   TAtomicInt64   = TAtomicInteger64<Int64>;
+{$IF defined(CPUX64) or defined(CPU64BITS)}
+  TAtomicUIntPtr = TAtomicInteger64<UIntPtr>;
+  TAtomicIntPtr  = TAtomicInteger64<IntPtr>;
+{$ELSE}
+  TAtomicUIntPtr = TAtomicInteger<UIntPtr>;
+  TAtomicIntPtr  = TAtomicInteger<IntPtr>;
+{$ENDIF}
 
 implementation
 
@@ -1359,33 +1370,43 @@ begin
   Result := 0;
   if TypeInfo(T) = TypeInfo(UInt8) then
   begin
-    if (PUInt8(@A)^  > PUInt8(@B)^) then Result :=  1 else
-    if (PUInt8(@A)^  < PUInt8(@B)^) then Result := -1;
+    if (PUInt8(@A)^   > PUInt8(@B)^)   then Result :=  1 else
+    if (PUInt8(@A)^   < PUInt8(@B)^)   then Result := -1;
   end else
   if TypeInfo(T) = TypeInfo(UInt16) then
   begin
-    if (PUInt16(@A)^ > PUInt16(@B)^) then Result :=  1 else
-    if (PUInt16(@A)^ < PUInt16(@B)^) then Result := -1;
+    if (PUInt16(@A)^  > PUInt16(@B)^)  then Result :=  1 else
+    if (PUInt16(@A)^  < PUInt16(@B)^)  then Result := -1;
   end else
   if TypeInfo(T) = TypeInfo(UInt32) then
   begin
-    if (PUInt32(@A)^ > PUInt32(@B)^) then Result :=  1 else
-    if (PUInt32(@A)^ < PUInt32(@B)^) then Result := -1;
+    if (PUInt32(@A)^  > PUInt32(@B)^)  then Result :=  1 else
+    if (PUInt32(@A)^  < PUInt32(@B)^)  then Result := -1;
+  end else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then
+  begin
+    if (PUIntPtr(@A)^ > PUIntPtr(@B)^) then Result :=  1 else
+    if (PUIntPtr(@A)^ < PUIntPtr(@B)^) then Result := -1;
   end else
   if TypeInfo(T) = TypeInfo(Int8) then
   begin
-    if (PInt8(@A)^   > PInt8(@B)^) then Result :=  1 else
-    if (PInt8(@A)^   < PInt8(@B)^) then Result := -1;
+    if (PInt8(@A)^    > PInt8(@B)^)    then Result :=  1 else
+    if (PInt8(@A)^    < PInt8(@B)^)    then Result := -1;
   end else
   if TypeInfo(T) = TypeInfo(Int16) then
   begin
-    if (PInt16(@A)^  > PInt16(@B)^) then Result :=  1 else
-    if (PInt16(@A)^  < PInt16(@B)^) then Result := -1;
+    if (PInt16(@A)^   > PInt16(@B)^)   then Result :=  1 else
+    if (PInt16(@A)^   < PInt16(@B)^)   then Result := -1;
   end else
   if TypeInfo(T) = TypeInfo(Int32) then
   begin
-    if (PInt32(@A)^  > PInt32(@B)^) then Result :=  1 else
-    if (PInt32(@A)^  < PInt32(@B)^) then Result := -1;
+    if (PInt32(@A)^   > PInt32(@B)^)   then Result :=  1 else
+    if (PInt32(@A)^   < PInt32(@B)^)   then Result := -1;
+  end else
+  if TypeInfo(T) = TypeInfo(IntPtr) then
+  begin
+    if (PIntPtr(@A)^  > PIntPtr(@B)^)  then Result :=  1 else
+    if (PIntPtr(@A)^  < PIntPtr(@B)^)  then Result := -1;
   end else
   begin
     case GetTypeData(TypeInfo(t)).OrdType of
@@ -1407,12 +1428,14 @@ end;
 
 class function TAtomicInteger<T>.GenericAdd(const A, B: T): T;
 begin
-  if TypeInfo(T) = TypeInfo(UInt8 ) then Result := ToGeneric(PUInt8 (@A)^ + PUInt8 (@B)^) else
-  if TypeInfo(T) = TypeInfo(UInt16) then Result := ToGeneric(PUInt16(@A)^ + PUInt16(@B)^) else
-  if TypeInfo(T) = TypeInfo(UInt32) then Result := ToGeneric(PUInt32(@A)^ + PUInt32(@B)^) else
-  if TypeInfo(T) = TypeInfo(Int8  ) then Result := ToGeneric(PInt8  (@A)^ + PInt8  (@B)^) else
-  if TypeInfo(T) = TypeInfo(Int16 ) then Result := ToGeneric(PInt16 (@A)^ + PInt16 (@B)^) else
-  if TypeInfo(T) = TypeInfo(Int32 ) then Result := ToGeneric(PInt32 (@A)^ + PInt32 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt8  ) then Result := ToGeneric(PUInt8  (@A)^ + PUInt8  (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt16 ) then Result := ToGeneric(PUInt16 (@A)^ + PUInt16 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt32 ) then Result := ToGeneric(PUInt32 (@A)^ + PUInt32 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := ToGeneric(PUIntPtr(@A)^ + PUIntPtr(@B)^) else
+  if TypeInfo(T) = TypeInfo(Int8   ) then Result := ToGeneric(PInt8   (@A)^ + PInt8   (@B)^) else
+  if TypeInfo(T) = TypeInfo(Int16  ) then Result := ToGeneric(PInt16  (@A)^ + PInt16  (@B)^) else
+  if TypeInfo(T) = TypeInfo(Int32  ) then Result := ToGeneric(PInt32  (@A)^ + PInt32  (@B)^) else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := ToGeneric(PIntPtr (@A)^ + PIntPtr (@B)^) else
   begin
     case GetTypeData(TypeInfo(t)).OrdType of
       otUByte: Result := ToGeneric(PUInt8 (@A)^ + PUInt8 (@B)^);
@@ -1427,12 +1450,14 @@ end;
 
 class function TAtomicInteger<T>.GenericSub(const A, B: T): T;
 begin
-  if TypeInfo(T) = TypeInfo(UInt8 ) then Result := ToGeneric(PUInt8 (@A)^ - PUInt8 (@B)^) else
-  if TypeInfo(T) = TypeInfo(UInt16) then Result := ToGeneric(PUInt16(@A)^ - PUInt16(@B)^) else
-  if TypeInfo(T) = TypeInfo(UInt32) then Result := ToGeneric(PUInt32(@A)^ - PUInt32(@B)^) else
-  if TypeInfo(T) = TypeInfo(Int8  ) then Result := ToGeneric(PInt8  (@A)^ - PInt8  (@B)^) else
-  if TypeInfo(T) = TypeInfo(Int16 ) then Result := ToGeneric(PInt16 (@A)^ - PInt16 (@B)^) else
-  if TypeInfo(T) = TypeInfo(Int32 ) then Result := ToGeneric(PInt32 (@A)^ - PInt32 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt8  ) then Result := ToGeneric(PUInt8  (@A)^ - PUInt8  (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt16 ) then Result := ToGeneric(PUInt16 (@A)^ - PUInt16 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt32 ) then Result := ToGeneric(PUInt32 (@A)^ - PUInt32 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := ToGeneric(PUIntPtr(@A)^ - PUIntPtr(@B)^) else
+  if TypeInfo(T) = TypeInfo(Int8   ) then Result := ToGeneric(PInt8   (@A)^ - PInt8   (@B)^) else
+  if TypeInfo(T) = TypeInfo(Int16  ) then Result := ToGeneric(PInt16  (@A)^ - PInt16  (@B)^) else
+  if TypeInfo(T) = TypeInfo(Int32  ) then Result := ToGeneric(PInt32  (@A)^ - PInt32  (@B)^) else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := ToGeneric(PIntPtr (@A)^ - PIntPtr (@B)^) else
   begin
     case GetTypeData(TypeInfo(t)).OrdType of
       otUByte: Result := ToGeneric(PUInt8 (@A)^ - PUInt8 (@B)^);
@@ -1447,12 +1472,14 @@ end;
 
 class function TAtomicInteger<T>.GenericMul(const A, B: T): T;
 begin
-  if TypeInfo(T) = TypeInfo(UInt8 ) then Result := ToGeneric(PUInt8 (@A)^ * PUInt8 (@B)^) else
-  if TypeInfo(T) = TypeInfo(UInt16) then Result := ToGeneric(PUInt16(@A)^ * PUInt16(@B)^) else
-  if TypeInfo(T) = TypeInfo(UInt32) then Result := ToGeneric(PUInt32(@A)^ * PUInt32(@B)^) else
-  if TypeInfo(T) = TypeInfo(Int8  ) then Result := ToGeneric(PInt8  (@A)^ * PInt8  (@B)^) else
-  if TypeInfo(T) = TypeInfo(Int16 ) then Result := ToGeneric(PInt16 (@A)^ * PInt16 (@B)^) else
-  if TypeInfo(T) = TypeInfo(Int32 ) then Result := ToGeneric(PInt32 (@A)^ * PInt32 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt8  ) then Result := ToGeneric(PUInt8  (@A)^ * PUInt8  (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt16 ) then Result := ToGeneric(PUInt16 (@A)^ * PUInt16 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt32 ) then Result := ToGeneric(PUInt32 (@A)^ * PUInt32 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := ToGeneric(PUIntPtr(@A)^ * PUIntPtr(@B)^) else
+  if TypeInfo(T) = TypeInfo(Int8   ) then Result := ToGeneric(PInt8   (@A)^ * PInt8   (@B)^) else
+  if TypeInfo(T) = TypeInfo(Int16  ) then Result := ToGeneric(PInt16  (@A)^ * PInt16  (@B)^) else
+  if TypeInfo(T) = TypeInfo(Int32  ) then Result := ToGeneric(PInt32  (@A)^ * PInt32  (@B)^) else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := ToGeneric(PIntPtr (@A)^ * PIntPtr (@B)^) else
   begin
     case GetTypeData(TypeInfo(t)).OrdType of
       otUByte: Result := ToGeneric(PUInt8 (@A)^ * PUInt8 (@B)^);
@@ -1467,12 +1494,14 @@ end;
 
 class function TAtomicInteger<T>.GenericDiv(const A, B: T): Double;
 begin
-  if TypeInfo(T) = TypeInfo(UInt8 ) then Result := PUInt8 (@A)^ / PUInt8 (@B)^ else
-  if TypeInfo(T) = TypeInfo(UInt16) then Result := PUInt16(@A)^ / PUInt16(@B)^ else
-  if TypeInfo(T) = TypeInfo(UInt32) then Result := PUInt32(@A)^ / PUInt32(@B)^ else
-  if TypeInfo(T) = TypeInfo(Int8  ) then Result := PInt8  (@A)^ / PInt8  (@B)^ else
-  if TypeInfo(T) = TypeInfo(Int16 ) then Result := PInt16 (@A)^ / PInt16 (@B)^ else
-  if TypeInfo(T) = TypeInfo(Int32 ) then Result := PInt32 (@A)^ / PInt32 (@B)^ else
+  if TypeInfo(T) = TypeInfo(UInt8  ) then Result := PUInt8  (@A)^ / PUInt8  (@B)^ else
+  if TypeInfo(T) = TypeInfo(UInt16 ) then Result := PUInt16 (@A)^ / PUInt16 (@B)^ else
+  if TypeInfo(T) = TypeInfo(UInt32 ) then Result := PUInt32 (@A)^ / PUInt32 (@B)^ else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := PUIntPtr(@A)^ / PUIntPtr(@B)^ else
+  if TypeInfo(T) = TypeInfo(Int8   ) then Result := PInt8   (@A)^ / PInt8   (@B)^ else
+  if TypeInfo(T) = TypeInfo(Int16  ) then Result := PInt16  (@A)^ / PInt16  (@B)^ else
+  if TypeInfo(T) = TypeInfo(Int32  ) then Result := PInt32  (@A)^ / PInt32  (@B)^ else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := PIntPtr (@A)^ / PIntPtr (@B)^ else
   begin
     case GetTypeData(TypeInfo(t)).OrdType of
       otUByte: Result := PUInt8 (@A)^ / PUInt8 (@B)^;
@@ -1487,12 +1516,14 @@ end;
 
 class function TAtomicInteger<T>.GenericIntDiv(const A, B: T): T;
 begin
-  if TypeInfo(T) = TypeInfo(UInt8 ) then Result := ToGeneric(PUInt8 (@A)^ div PUInt8 (@B)^) else
-  if TypeInfo(T) = TypeInfo(UInt16) then Result := ToGeneric(PUInt16(@A)^ div PUInt16(@B)^) else
-  if TypeInfo(T) = TypeInfo(UInt32) then Result := ToGeneric(PUInt32(@A)^ div PUInt32(@B)^) else
-  if TypeInfo(T) = TypeInfo(Int8  ) then Result := ToGeneric(PInt8  (@A)^ div PInt8  (@B)^) else
-  if TypeInfo(T) = TypeInfo(Int16 ) then Result := ToGeneric(PInt16 (@A)^ div PInt16 (@B)^) else
-  if TypeInfo(T) = TypeInfo(Int32 ) then Result := ToGeneric(PInt32 (@A)^ div PInt32 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt8  ) then Result := ToGeneric(PUInt8  (@A)^ div PUInt8  (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt16 ) then Result := ToGeneric(PUInt16 (@A)^ div PUInt16 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt32 ) then Result := ToGeneric(PUInt32 (@A)^ div PUInt32 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := ToGeneric(PUIntPtr(@A)^ div PUIntPtr(@B)^) else
+  if TypeInfo(T) = TypeInfo(Int8   ) then Result := ToGeneric(PInt8   (@A)^ div PInt8   (@B)^) else
+  if TypeInfo(T) = TypeInfo(Int16  ) then Result := ToGeneric(PInt16  (@A)^ div PInt16  (@B)^) else
+  if TypeInfo(T) = TypeInfo(Int32  ) then Result := ToGeneric(PInt32  (@A)^ div PInt32  (@B)^) else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := ToGeneric(PIntPtr (@A)^ div PIntPtr (@B)^) else
   begin
     case GetTypeData(TypeInfo(t)).OrdType of
       otUByte: Result := ToGeneric(PUInt8 (@A)^ div PUInt8 (@B)^);
@@ -1507,12 +1538,14 @@ end;
 
 class function TAtomicInteger<T>.GenericMod(const A, B: T): T;
 begin
-  if TypeInfo(T) = TypeInfo(UInt8 ) then Result := ToGeneric(PUInt8 (@A)^ mod PUInt8 (@B)^) else
-  if TypeInfo(T) = TypeInfo(UInt16) then Result := ToGeneric(PUInt16(@A)^ mod PUInt16(@B)^) else
-  if TypeInfo(T) = TypeInfo(UInt32) then Result := ToGeneric(PUInt32(@A)^ mod PUInt32(@B)^) else
-  if TypeInfo(T) = TypeInfo(Int8  ) then Result := ToGeneric(PInt8  (@A)^ mod PInt8  (@B)^) else
-  if TypeInfo(T) = TypeInfo(Int16 ) then Result := ToGeneric(PInt16 (@A)^ mod PInt16 (@B)^) else
-  if TypeInfo(T) = TypeInfo(Int32 ) then Result := ToGeneric(PInt32 (@A)^ mod PInt32 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt8  ) then Result := ToGeneric(PUInt8  (@A)^ mod PUInt8  (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt16 ) then Result := ToGeneric(PUInt16 (@A)^ mod PUInt16 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt32 ) then Result := ToGeneric(PUInt32 (@A)^ mod PUInt32 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := ToGeneric(PUIntPtr(@A)^ mod PUIntPtr(@B)^) else
+  if TypeInfo(T) = TypeInfo(Int8   ) then Result := ToGeneric(PInt8   (@A)^ mod PInt8   (@B)^) else
+  if TypeInfo(T) = TypeInfo(Int16  ) then Result := ToGeneric(PInt16  (@A)^ mod PInt16  (@B)^) else
+  if TypeInfo(T) = TypeInfo(Int32  ) then Result := ToGeneric(PInt32  (@A)^ mod PInt32  (@B)^) else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := ToGeneric(PIntPtr (@A)^ mod PIntPtr (@B)^) else
   begin
     case GetTypeData(TypeInfo(t)).OrdType of
       otUByte: Result := ToGeneric(PUInt8 (@A)^ mod PUInt8 (@B)^);
@@ -1537,12 +1570,14 @@ end;
 
 procedure TAtomicInteger<T>.Assign(const Value: T);
 begin
-  if TypeInfo(T) = TypeInfo(UInt8 ) then AtomicExchange(FValue, PUInt8 (@Value)^) else
-  if TypeInfo(T) = TypeInfo(UInt16) then AtomicExchange(FValue, PUInt16(@Value)^) else
-  if TypeInfo(T) = TypeInfo(UInt32) then AtomicExchange(FValue, PUInt32(@Value)^) else
-  if TypeInfo(T) = TypeInfo(Int8  ) then AtomicExchange(FValue, PInt8  (@Value)^) else
-  if TypeInfo(T) = TypeInfo(Int16 ) then AtomicExchange(FValue, PInt16 (@Value)^) else
-  if TypeInfo(T) = TypeInfo(Int32 ) then AtomicExchange(FValue, PInt32 (@Value)^) else
+  if TypeInfo(T) = TypeInfo(UInt8  ) then AtomicExchange(FValue, PUInt8  (@Value)^) else
+  if TypeInfo(T) = TypeInfo(UInt16 ) then AtomicExchange(FValue, PUInt16 (@Value)^) else
+  if TypeInfo(T) = TypeInfo(UInt32 ) then AtomicExchange(FValue, PUInt32 (@Value)^) else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then AtomicExchange(FValue, PUIntPtr(@Value)^) else
+  if TypeInfo(T) = TypeInfo(Int8   ) then AtomicExchange(FValue, PInt8   (@Value)^) else
+  if TypeInfo(T) = TypeInfo(Int16  ) then AtomicExchange(FValue, PInt16  (@Value)^) else
+  if TypeInfo(T) = TypeInfo(Int32  ) then AtomicExchange(FValue, PInt32  (@Value)^) else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then AtomicExchange(FValue, PIntPtr (@Value)^) else
   begin
     AtomicExchange(FValue, ToOrdinal(Value) and OrdinalMask);
   end;
@@ -1555,12 +1590,14 @@ end;
 
 procedure TAtomicInteger<T>.UnsafeAssign(const Value: T);
 begin
-  if TypeInfo(T) = TypeInfo(UInt8 ) then FValue := PUInt8 (@Value)^ else
-  if TypeInfo(T) = TypeInfo(UInt16) then FValue := PUInt16(@Value)^ else
-  if TypeInfo(T) = TypeInfo(UInt32) then FValue := PUInt32(@Value)^ else
-  if TypeInfo(T) = TypeInfo(Int8  ) then FValue := PInt8  (@Value)^ else
-  if TypeInfo(T) = TypeInfo(Int16 ) then FValue := PInt16 (@Value)^ else
-  if TypeInfo(T) = TypeInfo(Int32 ) then FValue := PInt32 (@Value)^ else
+  if TypeInfo(T) = TypeInfo(UInt8  ) then FValue := PUInt8  (@Value)^ else
+  if TypeInfo(T) = TypeInfo(UInt16 ) then FValue := PUInt16 (@Value)^ else
+  if TypeInfo(T) = TypeInfo(UInt32 ) then FValue := PUInt32 (@Value)^ else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then FValue := PUIntPtr(@Value)^ else
+  if TypeInfo(T) = TypeInfo(Int8   ) then FValue := PInt8   (@Value)^ else
+  if TypeInfo(T) = TypeInfo(Int16  ) then FValue := PInt16  (@Value)^ else
+  if TypeInfo(T) = TypeInfo(Int32  ) then FValue := PInt32  (@Value)^ else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then FValue := PIntPtr (@Value)^ else
   begin
     FValue := ToOrdinal(Value) and OrdinalMask;
   end;
@@ -1617,12 +1654,14 @@ end;
 
 class operator TAtomicInteger<T>.Implicit(const A: TAtomicInteger<T>): Double;
 begin
-  if TypeInfo(T) = TypeInfo(UInt8 ) then Result := PUInt8 (@A.FValue)^ else
-  if TypeInfo(T) = TypeInfo(UInt16) then Result := PUInt16(@A.FValue)^ else
-  if TypeInfo(T) = TypeInfo(UInt32) then Result := PUInt32(@A.FValue)^ else
-  if TypeInfo(T) = TypeInfo(Int8  ) then Result := PInt8  (@A.FValue)^ else
-  if TypeInfo(T) = TypeInfo(Int16 ) then Result := PInt16 (@A.FValue)^ else
-  if TypeInfo(T) = TypeInfo(Int32 ) then Result := PInt32 (@A.FValue)^ else
+  if TypeInfo(T) = TypeInfo(UInt8  ) then Result := PUInt8  (@A.FValue)^ else
+  if TypeInfo(T) = TypeInfo(UInt16 ) then Result := PUInt16 (@A.FValue)^ else
+  if TypeInfo(T) = TypeInfo(UInt32 ) then Result := PUInt32 (@A.FValue)^ else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := PUIntPtr(@A.FValue)^ else
+  if TypeInfo(T) = TypeInfo(Int8   ) then Result := PInt8   (@A.FValue)^ else
+  if TypeInfo(T) = TypeInfo(Int16  ) then Result := PInt16  (@A.FValue)^ else
+  if TypeInfo(T) = TypeInfo(Int32  ) then Result := PInt32  (@A.FValue)^ else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := PIntPtr (@A.FValue)^ else
   begin
     case GetTypeData(TypeInfo(t)).OrdType of
       otUByte: Result := UInt8 (A.GetOrdinal);
@@ -1923,8 +1962,7 @@ class procedure TAtomicInteger64<T>.CheckGenericType;
 begin
   Assert(PTypeInfo(TypeInfo(T))^.Kind in [tkInt64],
     'Unsupported generic type.');
-  Assert(SizeOf(T) <= 8,
-    'The generic type exceeded the maximum of 8 bytes.');
+  Assert(SizeOf(T) = 8);
 end;
 
 class function TAtomicInteger64<T>.ToGeneric(const Value: TOrdinalType): T;
@@ -1942,13 +1980,23 @@ begin
   Result := 0;
   if TypeInfo(T) = TypeInfo(UInt64) then
   begin
-    if (PUInt64(@A)^ > PUInt64(@B)^) then Result :=  1 else
-    if (PUInt64(@A)^ < PUInt64(@B)^) then Result := -1;
+    if (PUInt64(@A)^  > PUInt64(@B)^)  then Result :=  1 else
+    if (PUInt64(@A)^  < PUInt64(@B)^)  then Result := -1;
+  end else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then
+  begin
+    if (PUIntPtr(@A)^ > PUIntPtr(@B)^) then Result :=  1 else
+    if (PUIntPtr(@A)^ < PUIntPtr(@B)^) then Result := -1;
   end else
   if TypeInfo(T) = TypeInfo(Int64) then
   begin
-    if (PInt64(@A)^  > PInt64(@B)^) then Result :=  1 else
-    if (PInt64(@A)^  < PInt64(@B)^) then Result := -1;
+    if (PInt64(@A)^  > PInt64(@B)^)    then Result :=  1 else
+    if (PInt64(@A)^  < PInt64(@B)^)    then Result := -1;
+  end else
+  if TypeInfo(T) = TypeInfo(IntPtr) then
+  begin
+    if (PIntPtr(@A)^ > PIntPtr(@B)^)   then Result :=  1 else
+    if (PIntPtr(@A)^ < PIntPtr(@B)^)   then Result := -1;
   end else
   begin
     if (GetTypeData(TypeInfo(T)).MinInt64Value = 0) then
@@ -1957,16 +2005,18 @@ begin
       if (PUInt64(@A)^ < PUInt64(@B)^) then Result := -1;
     end else
     begin
-      if (PInt64(@A)^  > PInt64(@B)^) then Result :=  1 else
-      if (PInt64(@A)^  < PInt64(@B)^) then Result := -1;
+      if (PInt64(@A)^  > PInt64(@B)^)  then Result :=  1 else
+      if (PInt64(@A)^  < PInt64(@B)^)  then Result := -1;
     end;
   end;
 end;
 
 class function TAtomicInteger64<T>.GenericAdd(const A, B: T): T;
 begin
-  if TypeInfo(T) = TypeInfo(UInt64) then Result := ToGeneric(PUInt64(@A)^ + PUInt64(@B)^) else
-  if TypeInfo(T) = TypeInfo(Int64 ) then Result := ToGeneric(PInt64 (@A)^ + PInt64 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt64 ) then Result := ToGeneric(PUInt64 (@A)^ + PUInt64 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := ToGeneric(PUIntPtr(@A)^ + PUIntPtr(@B)^) else
+  if TypeInfo(T) = TypeInfo(Int64  ) then Result := ToGeneric(PInt64  (@A)^ + PInt64  (@B)^) else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := ToGeneric(PIntPtr (@A)^ + PIntPtr (@B)^) else
   begin
     if (GetTypeData(TypeInfo(T)).MinInt64Value = 0) then
     begin
@@ -1980,8 +2030,10 @@ end;
 
 class function TAtomicInteger64<T>.GenericSub(const A, B: T): T;
 begin
-  if TypeInfo(T) = TypeInfo(UInt64) then Result := ToGeneric(PUInt64(@A)^ - PUInt64(@B)^) else
-  if TypeInfo(T) = TypeInfo(Int64 ) then Result := ToGeneric(PInt64 (@A)^ - PInt64 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt64 ) then Result := ToGeneric(PUInt64 (@A)^ - PUInt64 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := ToGeneric(PUIntPtr(@A)^ - PUIntPtr(@B)^) else
+  if TypeInfo(T) = TypeInfo(Int64  ) then Result := ToGeneric(PInt64  (@A)^ - PInt64  (@B)^) else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := ToGeneric(PIntPtr (@A)^ - PIntPtr (@B)^) else
   begin
     if (GetTypeData(TypeInfo(T)).MinInt64Value = 0) then
     begin
@@ -1995,8 +2047,10 @@ end;
 
 class function TAtomicInteger64<T>.GenericMul(const A, B: T): T;
 begin
-  if TypeInfo(T) = TypeInfo(UInt64) then Result := ToGeneric(PUInt64(@A)^ * PUInt64(@B)^) else
-  if TypeInfo(T) = TypeInfo(Int64 ) then Result := ToGeneric(PInt64 (@A)^ * PInt64 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt64 ) then Result := ToGeneric(PUInt64 (@A)^ * PUInt64 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := ToGeneric(PUIntPtr(@A)^ * PUIntPtr(@B)^) else
+  if TypeInfo(T) = TypeInfo(Int64  ) then Result := ToGeneric(PInt64  (@A)^ * PInt64  (@B)^) else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := ToGeneric(PIntPtr (@A)^ * PIntPtr (@B)^) else
   begin
     if (GetTypeData(TypeInfo(T)).MinInt64Value = 0) then
     begin
@@ -2010,8 +2064,10 @@ end;
 
 class function TAtomicInteger64<T>.GenericDiv(const A, B: T): Double;
 begin
-  if TypeInfo(T) = TypeInfo(UInt64) then Result := PUInt64(@A)^ / PUInt64(@B)^ else
-  if TypeInfo(T) = TypeInfo(Int64 ) then Result := PInt64 (@A)^ / PInt64 (@B)^ else
+  if TypeInfo(T) = TypeInfo(UInt64 ) then Result := PUInt64 (@A)^ / PUInt64 (@B)^ else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := PUIntPtr(@A)^ / PUIntPtr(@B)^ else
+  if TypeInfo(T) = TypeInfo(Int64  ) then Result := PInt64  (@A)^ / PInt64  (@B)^ else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := PIntPtr (@A)^ / PIntPtr (@B)^ else
   begin
     if (GetTypeData(TypeInfo(T)).MinInt64Value = 0) then
     begin
@@ -2025,8 +2081,10 @@ end;
 
 class function TAtomicInteger64<T>.GenericIntDiv(const A, B: T): T;
 begin
-  if TypeInfo(T) = TypeInfo(UInt64) then Result := ToGeneric(PUInt64(@A)^ div PUInt64(@B)^) else
-  if TypeInfo(T) = TypeInfo(Int64 ) then Result := ToGeneric(PInt64 (@A)^ div PInt64 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt64 ) then Result := ToGeneric(PUInt64 (@A)^ div PUInt64 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := ToGeneric(PUIntPtr(@A)^ div PUIntPtr(@B)^) else
+  if TypeInfo(T) = TypeInfo(Int64  ) then Result := ToGeneric(PInt64  (@A)^ div PInt64  (@B)^) else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := ToGeneric(PIntPtr (@A)^ div PIntPtr (@B)^) else
   begin
     if (GetTypeData(TypeInfo(T)).MinInt64Value = 0) then
     begin
@@ -2040,8 +2098,10 @@ end;
 
 class function TAtomicInteger64<T>.GenericMod(const A, B: T): T;
 begin
-  if TypeInfo(T) = TypeInfo(UInt64) then Result := ToGeneric(PUInt64(@A)^ mod PUInt64(@B)^) else
-  if TypeInfo(T) = TypeInfo(Int64 ) then Result := ToGeneric(PInt64 (@A)^ mod PInt64 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UInt64 ) then Result := ToGeneric(PUInt64 (@A)^ mod PUInt64 (@B)^) else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := ToGeneric(PUIntPtr(@A)^ mod PUIntPtr(@B)^) else
+  if TypeInfo(T) = TypeInfo(Int64  ) then Result := ToGeneric(PInt64  (@A)^ mod PInt64  (@B)^) else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := ToGeneric(PIntPtr (@A)^ mod PIntPtr (@B)^) else
   begin
     if (GetTypeData(TypeInfo(T)).MinInt64Value = 0) then
     begin
@@ -2128,8 +2188,10 @@ end;
 
 class operator TAtomicInteger64<T>.Implicit(const A: TAtomicInteger64<T>): Double;
 begin
-  if TypeInfo(T) = TypeInfo(UInt64) then Result := UInt64(A.GetOrdinal) else
-  if TypeInfo(T) = TypeInfo(Int64 ) then Result := Int64 (A.GetOrdinal) else
+  if TypeInfo(T) = TypeInfo(UInt64 ) then Result := UInt64 (A.GetOrdinal) else
+  if TypeInfo(T) = TypeInfo(UIntPtr) then Result := UIntPtr(A.GetOrdinal) else
+  if TypeInfo(T) = TypeInfo(Int64  ) then Result := Int64  (A.GetOrdinal) else
+  if TypeInfo(T) = TypeInfo(IntPtr ) then Result := IntPtr (A.GetOrdinal) else
   begin
     if (GetTypeData(TypeInfo(T)).MinInt64Value = 0) then
     begin
