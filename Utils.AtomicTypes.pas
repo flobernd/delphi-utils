@@ -40,6 +40,9 @@ type
     TOrdinalType = UInt32;
     POrdinalType = ^TOrdinalType;
     PGenericType = ^T;
+    PUInt8       = ^UInt8;
+    PUInt16      = ^UInt16;
+    PUInt32      = ^UInt32;
   strict private
     class var OrdinalMask: TOrdinalType;
   strict private
@@ -799,27 +802,11 @@ begin
 end;
 
 procedure TAtomicBoolean<T>.Assign(const Value: T);
-type
-  PUInt8  = ^UInt8;
-  PUInt16 = ^UInt16;
-  PUInt32 = ^UInt32;
 begin
-  if TypeInfo(T) = TypeInfo(Boolean) then
-  begin
-    AtomicExchange(FValue, PUInt8(@Value)^);
-  end else
-  if TypeInfo(T) = TypeInfo(ByteBool) then
-  begin
-    AtomicExchange(FValue, PUInt8(@Value)^);
-  end else
-  if TypeInfo(T) = TypeInfo(WordBool) then
-  begin
-    AtomicExchange(FValue, PUInt16(@Value)^);
-  end else
-  if TypeInfo(T) = TypeInfo(LongBool) then
-  begin
-    AtomicExchange(FValue, PUInt32(@Value)^);
-  end else
+  if TypeInfo(T) = TypeInfo(Boolean ) then AtomicExchange(FValue, PUInt8 (@Value)^) else
+  if TypeInfo(T) = TypeInfo(ByteBool) then AtomicExchange(FValue, PUInt8 (@Value)^) else
+  if TypeInfo(T) = TypeInfo(WordBool) then AtomicExchange(FValue, PUInt16(@Value)^) else
+  if TypeInfo(T) = TypeInfo(LongBool) then AtomicExchange(FValue, PUInt32(@Value)^) else
   begin
     AtomicExchange(FValue, ToOrdinal(Value) and OrdinalMask);
   end;
@@ -831,27 +818,11 @@ begin
 end;
 
 procedure TAtomicBoolean<T>.UnsafeAssign(const Value: T);
-type
-  PUInt8  = ^UInt8;
-  PUInt16 = ^UInt16;
-  PUInt32 = ^UInt32;
 begin
-  if TypeInfo(T) = TypeInfo(Boolean) then
-  begin
-    FValue := PUInt8(@Value)^;
-  end else
-  if TypeInfo(T) = TypeInfo(ByteBool) then
-  begin
-    FValue := PUInt8(@Value)^;
-  end else
-  if TypeInfo(T) = TypeInfo(WordBool) then
-  begin
-    FValue := PUInt16(@Value)^;
-  end else
-  if TypeInfo(T) = TypeInfo(LongBool) then
-  begin
-    FValue := PUInt32(@Value)^;
-  end else
+  if TypeInfo(T) = TypeInfo(Boolean ) then FValue := PUInt8 (@Value)^ else
+  if TypeInfo(T) = TypeInfo(ByteBool) then FValue := PUInt8 (@Value)^ else
+  if TypeInfo(T) = TypeInfo(WordBool) then FValue := PUInt16(@Value)^ else
+  if TypeInfo(T) = TypeInfo(LongBool) then FValue := PUInt32(@Value)^ else
   begin
     FValue := ToOrdinal(Value) and OrdinalMask;
   end;
