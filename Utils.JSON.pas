@@ -47,6 +47,24 @@ type
   public
     class function ValueType(Value: TJSONValue): TJSONType; static;
     class function Equals(A, B: TJSONValue): Boolean; static;
+    /// <summary>
+    ///   JSON Merge Patch, according to <b>RFC 7396</b>:
+    ///   <i>
+    ///   Recipients of a merge patch document determine the exact
+    ///   set of changes being requested by comparing the content of the
+    ///   provided patch against the current content of the target document.
+    ///   If the provided merge patch contains members that do not appear
+    ///   within the target, those members are added.  If the target does
+    ///   contain the member, the value is replaced.  Null values in the merge
+    ///   patch are given special meaning to indicate the removal of existing
+    ///   values in the target.
+    ///   </i>
+    /// </summary>
+    /// <seealso href="https://tools.ietf.org/html/rfc7396" />
+   class function MergePatch(
+      target: TJsonValue;
+      const patch: TJsonValue
+    ): TJSONValue; static;
   end;
 
   EJSONException = class(Exception)
@@ -370,7 +388,7 @@ type
 implementation
 
 uses
-  System.StrUtils;
+  System.StrUtils, System.Generics.Collections;
 
 {$REGION 'Internal Helper Functions'}
 function FormatType(AType: TJSONType): String;
@@ -447,6 +465,48 @@ begin
   begin
     Exit(false);
   end;
+end;
+
+class function TJSONHelper.MergePatch(
+  target: TJsonValue;
+  const patch: TJsonValue
+): TJsonValue;
+var
+  pair: TJsonPair;
+  pairName: String;
+begin
+  if(patch is TJsonObject) then
+    begin
+      if(not (target is TJsonObject)) then
+        target := TJsonObject.Create()
+      else
+        target := target.Clone() as TJsonValue;
+      try
+        Result := target.Clone() as TJsonValue;
+        try
+          for pair in (patch as TJsonObject) do
+            begin
+              pairName := pair.JsonString.Value;
+              (result as TJsonObject).RemovePair(pairName).Free() ;
+
+              if(not pair.JsonValue.Null) then
+                (result as TJsonObject).AddPair(
+                  pairName,
+                  MergePatch(
+                    (target as TJsonObject).GetValue(pair.JsonString.Value),
+                    pair.JsonValue
+                  )
+                );
+            end;
+        except
+          Result.Destroy(); raise;
+        end;
+      finally
+        target.Destroy();
+      end;
+    end
+  else
+    Result := patch.Clone() as TJsonValue;
 end;
 
 class function TJSONHelper.ValueType(Value: TJSONValue): TJSONType;
