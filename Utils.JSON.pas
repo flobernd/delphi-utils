@@ -29,7 +29,7 @@ unit Utils.JSON;
 interface
 
 uses
-  System.SysUtils, System.JSON, System.TypInfo;
+  System.SysUtils, System.JSON, System.TypInfo, System.Generics.Collections;
 
 type
   TJSONType = (
@@ -388,7 +388,7 @@ type
 implementation
 
 uses
-  System.StrUtils, System.Generics.Collections;
+  System.StrUtils;
 
 {$REGION 'Internal Helper Functions'}
 function FormatType(AType: TJSONType): String;
