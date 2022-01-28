@@ -13,6 +13,8 @@ type
     procedure NullEqualsNull();
     procedure BooleanEquals();
     procedure FloatEquals();
+    procedure FloatEquals_Recursive_UseEpsilon();
+    procedure FloatEquals_UseEpsilon();
     procedure ArrayEquals_Integer();
     procedure ObjectEquals_TextField();
     procedure ObjectEquals_DifferentOrder();
@@ -116,6 +118,55 @@ end;
 procedure TestTJsonHelper.TearDown();
 begin
   // do nothing
+end;
+
+procedure TestTJsonHelper.FloatEquals_Recursive_UseEpsilon();
+const
+  a = '{"someFloat": 3.14}';
+  b = '{"someFloat": 3.1400001}';
+  EPSILON = 1E-3;
+var
+  objA, objB: TJsonObject;
+begin
+  objA := nil; objB := nil;
+  try
+    objA := TJsonObject.ParseJSONValue(a) as TJsonObject;
+    objB := TJsonObject.ParseJSONValue(b) as TJSONObject;
+
+    Check( TJSONHelper.Equals(objA, objB, EPSILON) );
+  finally
+    objA.Free(); objB.Free();
+  end;
+end;
+
+procedure TestTJsonHelper.FloatEquals_UseEpsilon();
+const
+  value_1 = 3.14159265;
+  value_2 = 3.141;
+var
+  a, b, c: TJSONNumber;
+  msg: String;
+begin
+  a := nil; b := nil; c := nil;
+  try
+  a := TJSONNumber.Create(value_1);
+  b := TJSONNumber.Create(value_1);
+  c := TJSONNumber.Create(value_2);
+
+  msg := 'a = b, Epsilon = 0';
+  Check( TJSONHelper.Equals(a, b, 0), msg );
+
+  msg := 'a = b, Epsilon = 1E-3';
+  Check( TJSONHelper.Equals(a, b, 1E-3), msg );
+
+  msg := 'a = c, Epsilon = 0';
+  CheckFalse( TJSONHelper.Equals(a, c, 0), msg );
+
+  msg := 'a = c, Epsilon = 1E-3';
+  Check( TJsonHelper.Equals(a, c, 1E-3), msg );
+  finally
+  a.Free(); b.Free(); c.Free();
+  end;
 end;
 
 procedure TestTJsonHelper.ReturnsFalseWhenEitherIsNil();
