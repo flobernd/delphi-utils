@@ -19,6 +19,10 @@ type
     procedure ObjectEquals_TextField();
     procedure ObjectEquals_DifferentOrder();
     procedure ObjectEquals_NestedObject();
+    procedure FloatEquals_LeadingZero();
+    procedure CompareFloatWithInt();
+    procedure IntegerEquals();
+    procedure IntegerEquals_LeadingZero();
 
 	//   ORIGINAL        PATCH            RESULT
 	//   ------------------------------------------
@@ -222,6 +226,24 @@ begin
   end;
 end;
 
+procedure TestTJsonHelper.CompareFloatWithInt();
+const
+  a = '{"value": 3}';
+  b = '{"value": 3.0}';
+var
+  objA, objB: TJsonObject;
+begin
+  objA := nil; objB := nil;
+  try
+    objA := TJsonObject.ParseJSONValue(a) as TJsonObject;
+    objB := TJsonObject.ParseJSONValue(b) as TJsonObject;
+
+    CheckFalse( TJsonHelper.Equals(objA, objB) );
+  finally
+    objA.Free(); objB.Free();
+  end;
+end;
+
 procedure TestTJsonHelper.FloatEquals();
 const
   value_1 = 3.14159265;
@@ -239,6 +261,55 @@ begin
     CheckFalse( TJSONHelper.Equals(a, c) );
   finally
     a.Free(); b.Free(); c.Free();
+  end;
+end;
+
+procedure TestTJsonHelper.FloatEquals_LeadingZero();
+var
+  a, b: TJsonValue;
+begin
+  a := nil; b:= nil;
+  try
+    a := TJsonNumber.Create('8.55');
+    b := TJsonNumber.Create('08.55');
+
+    Check( TJSONHelper.Equals(a, b) );
+  finally
+    a.Free(); b.Free();
+  end;
+end;
+
+procedure TestTJsonHelper.IntegerEquals();
+var
+  a, b, c: TJsonNumber;
+begin
+  a := nil; b := nil; c:= nil;
+  try
+    a := TJsonNumber.Create(42);
+    b := TJsonNumber.Create(42);
+    c := TJsonNumber.Create(99);
+
+    Check( TJSonHelper.Equals(a, b) );
+    CheckFalse( TJsonHelper.Equals(a, c) );
+  finally
+    a.Free(); b.Free(); c.Free();
+  end;
+end;
+
+procedure TestTJsonHelper.IntegerEquals_LeadingZero();
+var
+  a, b: TJsonNumber;
+begin
+  a := nil; b := nil;
+  try
+    a := TJsonNumber.Create('042');
+    b := TJsonNumber.Create('42');
+
+    Assert( a.AsInt = b.AsInt );
+
+    Check( TJsonHelper.Equals(a, b) );
+  finally
+    a.Free(); b.Free();
   end;
 end;
 
