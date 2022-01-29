@@ -46,7 +46,7 @@ type
   TJSONHelper = record
   public
     class function ValueType(Value: TJSONValue): TJSONType; static;
-    class function Equals(A, B: TJSONValue): Boolean; static;
+    class function Equals(A, B: TJSONValue; const epsilon: Double = 0): Boolean; static;
     /// <summary>
     ///   JSON Merge Patch, according to <b>RFC 7396</b>:
     ///   <i>
@@ -388,7 +388,8 @@ type
 implementation
 
 uses
-  System.StrUtils;
+  System.StrUtils,
+  System.Math;
 
 {$REGION 'Internal Helper Functions'}
 function FormatType(AType: TJSONType): String;
@@ -407,7 +408,7 @@ end;
 {$ENDREGION}
 
 {$REGION 'Class: TJSONHelper'}
-class function TJSONHelper.Equals(A, B: TJSONValue): Boolean;
+class function TJSONHelper.Equals(A, B: TJSONValue; const epsilon: Double = 0): Boolean;
 var
   T: TJSONType;
   I: Integer;
@@ -434,7 +435,7 @@ begin
         end;
         for I := 0 to AA.Count - 1 do
         begin
-          if (not Equals(AA.Items[I], AB.Items[I])) then
+          if (not Equals(AA.Items[I], AB.Items[I], epsilon)) then
           begin
             Exit(false);
           end;
@@ -453,13 +454,22 @@ begin
         begin
           P := OA.Pairs[I];
           V := OB.Values[P.JsonString.Value];
-          if (not Equals(P.JsonValue, V)) then
+          if (not Equals(P.JsonValue, V, epsilon)) then
           begin
             Exit(false);
           end;
         end;
         Exit;
-      end;
+    end;
+    jsonFloat:
+      begin
+        Result := SameValue(
+          (A as TJSONNumber).AsDouble,
+          (B as TJsonNumber).AsDouble,
+          epsilon
+        );
+      Exit;
+    end;
   end;
   if (A.Value <> B.Value) then
   begin
